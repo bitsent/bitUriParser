@@ -70,6 +70,7 @@ testData = {
   bip21sv: {
     uris: [
       "bitcoin:1FMif2XbHJx5L2x6QWYKyWEWPpxJC1ipXw?sv=&amount=0.00123456&label=PayMe",
+      "bitcoin:1FMif2XbHJx5L2x6QWYKyWEWPpxJC1ipXw?sv&amount=0.00123456&label=PayMe",
       "1FMif2XbHJx5L2x6QWYKyWEWPpxJC1ipXw?sv=&amount=0.00123456&label=PayMe"
     ],
     expected: {
@@ -155,6 +156,44 @@ testData = {
       memo: "P2P Transaction",
       isBSV: true,
       peer: "https://example.com/payments",
+      peerProtocol: "bip270"
+    }
+  },
+  bip272strict: {
+    uris: [
+      "bitcoin:?sv=&req-bip272=&r=" + encodeURIComponent("https://api.bitsent.net/payment/address/1Dmq5JKtWu4yZRLWBBKh3V2koeemNTYXAY/500000")
+    ],
+    expected: {
+      type: "bip272strict",
+      outputs: [
+        {
+          satoshis: 500000,
+          script: "76a9148c1bf1254637c3b521ce47f4b63636d11244a0bd88ac"
+        }
+      ],
+      inputs: [],
+      memo: "Pay to 1Dmq5JKtWu4yZRLWBBKh3V2koeemNTYXAY",
+      isBSV: true,
+      peer: "https://api.bitsent.net/payment/pay",
+      peerProtocol: "bip270"
+    }
+  },
+  bip272: {
+    uris: [
+      "bitcoin:?sv=&r=" + encodeURIComponent("https://api.bitsent.net/payment/address/1Dmq5JKtWu4yZRLWBBKh3V2koeemNTYXAY/500000")
+    ],
+    expected: {
+      type: "bip272",
+      outputs: [
+        {
+          satoshis: 500000,
+          script: "76a9148c1bf1254637c3b521ce47f4b63636d11244a0bd88ac"
+        }
+      ],
+      inputs: [],
+      memo: "Pay to 1Dmq5JKtWu4yZRLWBBKh3V2koeemNTYXAY",
+      isBSV: true,
+      peer: "https://api.bitsent.net/payment/pay",
       peerProtocol: "bip270"
     }
   }

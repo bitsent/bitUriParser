@@ -1,5 +1,6 @@
-// var bsv = require("bsv");
 var url = require("url");
+var http = require("http");
+var https = require("https");
 
 var scripter = (function() {
   var base58Alphabet =
@@ -217,7 +218,7 @@ var schemes = [
     parseOutputs: (uri, o) => create_BIP272_Outputs(uri, o),
     parseInputs: (uri, o) => create_BIP272_BIP282_Inputs(uri, o),
     parseMemo: (uri, o) => o["memo"] || "P2P Transaction",
-    parsePeer: (uri, o) => uri.searchParams["r"],
+    parsePeer: (uri, o) => o["peer"],
     peerProtocol: "bip270"
   },
   {
@@ -246,7 +247,7 @@ var schemes = [
     parseOutputs: (uri, o) => create_BIP272_Outputs(uri, o),
     parseInputs: (uri, o) => [],
     parseMemo: (uri, o) => o["memo"] || "P2P Transaction",
-    parsePeer: (uri, o) => uri.searchParams["r"],
+    parsePeer: (uri, o) => o["peer"],
     peerProtocol: "bip270"
   },
   {
@@ -259,7 +260,7 @@ var schemes = [
     parseOutputs: (uri, o) => create_BIP272_Outputs(uri, o),
     parseInputs: (uri, o) => [],
     parseMemo: (uri, o) => o["memo"] || "P2P Transaction",
-    parsePeer: (uri, o) => uri.searchParams["r"],
+    parsePeer: (uri, o) => o["peer"],
     peerProtocol: "bip270"
   },
   {
@@ -304,17 +305,17 @@ var schemes = [
     parseOutputs: (uri, o) => create_BIP72_Outputs(uri, o),
     parseInputs: (uri, o) => [],
     parseMemo: (uri, o) => o["memo"] || "P2P Transaction",
-    parsePeer: (uri, o) => uri.searchParams["r"],
+    parsePeer: (uri, o) => o["peer"],
     peerProtocol: "bip70"
   }
 ];
 
 function create_PrivateKey_Inputs(uri, o) {
-  return [];
+  throw new Error("PrivateKey Not Implemented");
   // TODO: Implement this method
 }
 function create_Paymail_Output(uri, o) {
-  return {};
+  throw new Error("PayTo Not Implemented");
   // TODO: Implement this method
 }
 function create_BIP275_Outputs(uri, o) {
@@ -337,14 +338,45 @@ function create_BIP275_BIP282_Inputs(uri, o) {
     };
   });
 }
-function create_BIP272_Outputs(uri, o) {
-  return [];
-  // TODO: Implement this method
+async function create_BIP272_Outputs(uri, o) {
+  var r = uri.searchParams["r"];
+  var requestString = await get(r);
+  var req = JSON.parse(requestString);
+
+  req = {
+    network: "bitcoin",
+    outputs: [
+      {
+        amount: 500000,
+        script: "76a9148c1bf1254637c3b521ce47f4b63636d11244a0bd88ac"
+      }
+    ],
+    creationTimestamp: 1584288774,
+    memo: "Pay to 1Dmq5JKtWu4yZRLWBBKh3V2koeemNTYXAY",
+    paymentUrl: "https://api.bitsent.net/payment/pay"
+  };
+
+  o["memo"] = req["memo"];
+  o["peer"] = req["paymentUrl"];
+  o["req-inputs"] = req["req-inputs"];
+  
+  return req.outputs.map(o => {
+    return {
+      script: o.script,
+      satoshis: parseInt(o.amount)
+    }
+  });
 }
 function create_BIP272_BIP282_Inputs(uri, o) {
-  return [];
-  // TODO: Implement this method
-  // TODO: Parse INPUTS written in the property of the 'o' object
+  var ins = o["req-inputs"];
+  return ins.map(i => {
+    return {
+      txid: i.txid,
+      vout: parseInt(i.vout),
+      satoshis: parseInt(i.value),
+      scriptSig: i.scriptSig
+    };
+  });
 }
 function create_BIP21_Output(uri, o) {
   return {
@@ -355,7 +387,7 @@ function create_BIP21_Output(uri, o) {
   };
 }
 function create_BIP72_Outputs(uri, o) {
-  return [];
+  throw new Error("BIP72 Not Implemented");
   // TODO: Implement this method
   // TODO: Add MEMO property to the 'o' object
 }
@@ -414,6 +446,16 @@ function findUriType(bitcoinUri, options) {
   );
 }
 
+function get(uri) {
+  var get = uri.startsWith("https:") ? https.get : http.get;
+  return new Promise(async (resolve, reject) => {
+    get(uri, resp => {
+      let data = "";
+      resp.on("data", chunk => (data += chunk));
+      resp.on("end", () => resolve(data));
+    }).on("error", err => reject(err));
+  });
+}
 function checkUtxosOfPrivKey(privkey) {
   return [
     {
@@ -426,7 +468,6 @@ function checkUtxosOfPrivKey(privkey) {
 function resolvePaymail(paymail) {
   return "output script";
 }
-
 function getUriObject(uriString, options) {
   bitcoinUri = {
     host: uriString.substring(
@@ -457,7 +498,6 @@ function getUriObject(uriString, options) {
 defaultOptions = {
   debugLog: () => {
     /** no logging by default */
-    console.log(42);
   },
   checkUtxosOfPrivKeyFunction: privkey => checkUtxosOfPrivKey(privkey),
   paymailResolverFunction: paymail => resolvePaymail(paymail)
