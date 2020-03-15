@@ -1,7 +1,6 @@
 // var bsv = require("bsv");
 var url = require("url");
 
-
 var scripter = (function() {
   var base58Alphabet =
     "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
@@ -147,19 +146,36 @@ var scripter = (function() {
   };
 })();
 
-
 // the schemes are ordered - more strict to less strict
 var schemes = [
   {
     name: "privkey",
     checkhSchema: s => true,
     checkPath: p => /[0-9A-fa-f]{64}/.test(p),
-    checkParams: p => p.length == 0,
+    checkParams: p => Object.keys(p).length === 0,
     knownRequiredParams: [],
 
     parseOutputs: (uri, o) => [],
     parseInputs: (uri, o) => create_PrivateKey_Inputs(uri, o),
     parseMemo: (uri, o) => "Sweep Wallet",
+    parsePeer: (uri, o) => null,
+    peerProtocol: null
+  },
+  {
+    name: "address",
+    checkhSchema: s => s === "",
+    checkPath: p => /^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$/.test(p),
+    checkParams: p => Object.keys(p).length === 0,
+    knownRequiredParams: [],
+
+    parseOutputs: (uri, o) => [create_BIP21_Output(uri, o)],
+    parseInputs: (uri, o) => [],
+    parseMemo: (uri, o) =>
+      uri.searchParams["label"] ||
+      uri.searchParams["message"] ||
+      "Payment to Address",
+    parsePeer: (uri, o) => null,
+    peerProtocol: null
   },
   {
     name: "paymail",
@@ -167,163 +183,208 @@ var schemes = [
     checkPath: p => /^([\w\.\-]+)@([\w\-]+)((\.(\w){2,3})+)$/.test(p),
     checkParams: p => true,
     knownRequiredParams: [],
-    
+
     parseOutputs: (uri, o) => [create_Paymail_Output(uri, o)],
     parseInputs: (uri, o) => [],
     parseMemo: (uri, o) => uri.searchParams["purpose"] || "Send to PayMail",
+    parsePeer: (uri, o) => null,
+    peerProtocol: null
   },
   {
-    name: "bip275-bip2852",
+    name: "bip275-bip282",
     checkhSchema: s => s === "bitcoin:",
-    checkPath: p => p.length == 0,
+    checkPath: p => p === "",
     checkParams: p =>
-      ["req-inputs", "req-bip275", "paymentUrl", "network", "outputs"].every(i => p[i] !== null),
+      ["req-inputs", "req-bip275", "paymentUrl", "network", "outputs"].every(
+        i => p[i] !== null
+      ),
     knownRequiredParams: ["req-inputs", "req-bip275"],
-    
+
     parseOutputs: (uri, o) => create_BIP275_Outputs(uri, o),
     parseInputs: (uri, o) => create_BIP275_BIP282_Inputs(uri, o),
     parseMemo: (uri, o) => uri.searchParams["memo"] || "P2P Transaction",
+    parsePeer: (uri, o) => uri.searchParams["paymentUrl"],
+    peerProtocol: "bip270"
   },
   {
-    name: "bip272-bip2852",
+    name: "bip272-bip282",
     checkhSchema: s => s === "bitcoin:",
-    checkPath: p => p.length == 0,
-    checkParams: p => ["req-inputs", "req-bip272", "r"].every(i => p[i] !== null),
+    checkPath: p => p === "",
+    checkParams: p =>
+      ["req-inputs", "req-bip272", "r"].every(i => p[i] !== null),
     knownRequiredParams: ["req-inputs", "req-bip272"],
-    
+
     parseOutputs: (uri, o) => create_BIP272_Outputs(uri, o),
     parseInputs: (uri, o) => create_BIP272_BIP282_Inputs(uri, o),
     parseMemo: (uri, o) => o["memo"] || "P2P Transaction",
+    parsePeer: (uri, o) => uri.searchParams["r"],
+    peerProtocol: "bip270"
   },
   {
     name: "bip275",
     checkhSchema: s => s === "bitcoin:",
-    checkPath: p => p.length == 0,
+    checkPath: p => p === "",
     checkParams: p =>
-      ["req-bip275", "paymentUrl", "network", "outputs"].every(i => p[i] !== null),
+      ["req-bip275", "paymentUrl", "network", "outputs"].every(
+        i => p[i] !== null
+      ),
     knownRequiredParams: ["req-bip275"],
-    
+
     parseOutputs: (uri, o) => create_BIP275_Outputs(uri, o),
     parseInputs: (uri, o) => [],
     parseMemo: (uri, o) => uri.searchParams["memo"] || "P2P Transaction",
+    parsePeer: (uri, o) => uri.searchParams["paymentUrl"],
+    peerProtocol: "bip270"
   },
   {
     name: "bip272strict",
     checkhSchema: s => s === "bitcoin:",
-    checkPath: p => p.length == 0,
+    checkPath: p => p === "",
     checkParams: p => ["req-bip272", "r"].every(i => p[i] !== null),
     knownRequiredParams: ["req-bip272"],
-    
+
     parseOutputs: (uri, o) => create_BIP272_Outputs(uri, o),
     parseInputs: (uri, o) => [],
     parseMemo: (uri, o) => o["memo"] || "P2P Transaction",
+    parsePeer: (uri, o) => uri.searchParams["r"],
+    peerProtocol: "bip270"
   },
   {
     name: "bip272",
     checkhSchema: s => s === "bitcoin:",
-    checkPath: p => p.length == 0,
+    checkPath: p => p === "",
     checkParams: p => ["sv", "r"].every(i => p[i] !== null),
     knownRequiredParams: [],
-    
+
     parseOutputs: (uri, o) => create_BIP272_Outputs(uri, o),
     parseInputs: (uri, o) => [],
     parseMemo: (uri, o) => o["memo"] || "P2P Transaction",
+    parsePeer: (uri, o) => uri.searchParams["r"],
+    peerProtocol: "bip270"
   },
   {
     name: "bip21sv",
-    checkhSchema: s => s === "bitcoin:",
+    checkhSchema: s => s === "bitcoin:" || s === "",
     checkPath: p => /^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$/.test(p),
-    checkParams: p => typeof(p["sv"]) === "string",
+    checkParams: p => typeof p["sv"] === "string",
     knownRequiredParams: [],
-    
+
     parseOutputs: (uri, o) => [create_BIP21_Output(uri, o)],
     parseInputs: (uri, o) => [],
-    parseMemo: (uri, o) => uri.searchParams["label"] || uri.searchParams["message"] || "Payment to Address",
+    parseMemo: (uri, o) =>
+      uri.searchParams["label"] ||
+      uri.searchParams["message"] ||
+      "Payment to Address",
+    parsePeer: (uri, o) => null,
+    peerProtocol: null
   },
   {
     name: "bip21",
-    checkhSchema: s => s === "bitcoin:",
+    checkhSchema: s => s === "bitcoin:" || s === "",
     checkPath: p => /^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$/.test(p),
     checkParams: p => true,
     knownRequiredParams: [],
-    
+
     parseOutputs: (uri, o) => [create_BIP21_Output(uri, o)],
     parseInputs: (uri, o) => [],
-    parseMemo: (uri, o) => uri.searchParams["label"] || uri.searchParams["message"] || "Payment to Address",
+    parseMemo: (uri, o) =>
+      uri.searchParams["label"] ||
+      uri.searchParams["message"] ||
+      "Payment to Address",
+    parsePeer: (uri, o) => null,
+    peerProtocol: null
   },
   {
     name: "bip72",
     checkhSchema: s => s === "bitcoin:",
-    checkPath: p => p.length == 0,
+    checkPath: p => p === "",
     checkParams: p => p["r"] !== null,
     knownRequiredParams: [],
-    
+
     parseOutputs: (uri, o) => create_BIP72_Outputs(uri, o),
     parseInputs: (uri, o) => [],
     parseMemo: (uri, o) => o["memo"] || "P2P Transaction",
+    parsePeer: (uri, o) => uri.searchParams["r"],
+    peerProtocol: "bip70"
   }
 ];
 
-
 function create_PrivateKey_Inputs(uri, o) {
-  throw new Error("Not Implemented");
+  return [];
   // TODO: Implement this method
 }
 function create_Paymail_Output(uri, o) {
-  throw new Error("Not Implemented");
+  return {};
   // TODO: Implement this method
 }
 function create_BIP275_Outputs(uri, o) {
-  throw new Error("Not Implemented");
-  // TODO: Implement this method
+  var outs = JSON.parse(uri.searchParams["outputs"]);
+  return outs.map(o => {
+    return {
+      script: o.script,
+      satoshis: parseInt(o.amount)
+    };
+  });
 }
 function create_BIP275_BIP282_Inputs(uri, o) {
-  throw new Error("Not Implemented");
-  // TODO: Implement this method
+  var ins = JSON.parse(uri.searchParams["req-inputs"]);
+  return ins.map(i => {
+    return {
+      txid: i.txid,
+      vout: parseInt(i.vout),
+      satoshis: parseInt(i.value),
+      scriptSig: i.scriptSig
+    };
+  });
 }
 function create_BIP272_Outputs(uri, o) {
-  throw new Error("Not Implemented");
+  return [];
   // TODO: Implement this method
-  // TODO: Add MEMO property to the 'o' object
-  // TODO: Add INPUTS property to the 'o' object
 }
 function create_BIP272_BIP282_Inputs(uri, o) {
-  throw new Error("Not Implemented");
+  return [];
   // TODO: Implement this method
   // TODO: Parse INPUTS written in the property of the 'o' object
 }
 function create_BIP21_Output(uri, o) {
   return {
     script: scripter.p2pkh(uri.host),
-    satoshis: (parseFloat(uri.searchParams["amount"])*100000000).toFixed(8)
-  }
+    satoshis: (parseFloat(uri.searchParams["amount"]) * 100000000).toFixed(8)
+  };
 }
 function create_BIP72_Outputs(uri, o) {
-  throw new Error("Not Implemented");
+  return [];
   // TODO: Implement this method
   // TODO: Add MEMO property to the 'o' object
 }
 
-
 function findUriType(bitcoinUri) {
   var requiredParams = [];
-  Object.keys(bitcoinUri.searchParams).forEach((k) => {
+  Object.keys(bitcoinUri.searchParams).forEach(k => {
     if (k.startsWith("req-")) requiredParams.push(k);
   });
 
+  var comparisons = []
   for (var sch in schemes) {
-    var pathPass = schemes[sch].checkhSchema(bitcoinUri.protocol);
-    var pathPass = schemes[sch].checkPath(bitcoinUri.host);
-    var paramsPass = schemes[sch].checkParams(bitcoinUri.searchParams);
-    var unknownRequiredParams = requiredParams.filter(
-      p => schemes[sch].knownRequiredParams.indexOf(p) < 0
-    );
-
-    if (pathPass && paramsPass) {
-      if (unknownRequiredParams.length > 0) continue;
-      return schemes[sch].name;
-    }
+    comparisons.push ({
+      name: schemes[sch].name,
+      protocolPass: schemes[sch].checkhSchema(bitcoinUri.protocol),
+      pathPass: schemes[sch].checkPath(bitcoinUri.host),
+      paramsPass: schemes[sch].checkParams(bitcoinUri.searchParams),
+      unknownRequiredParams: requiredParams.filter(
+        p => schemes[sch].knownRequiredParams.indexOf(p) < 0
+      ),
+    });
   }
+
+  var matches = comparisons.filter(i=> i.protocolPass && i.pathPass && i.paramsPass && i.unknownRequiredParams.length === 0)
+
+  console.log("comparisons", JSON.stringify(comparisons.map(i=>JSON.stringify(i)), null, 1));
+  console.log("matches", JSON.stringify(matches.map(i=>JSON.stringify(i)), null, 1));
+
+  if (matches[0])
+    return matches[0].name;
+  
   return (
     "Unknown Bitcoin URI" +
     (requiredParams.length > 0
@@ -342,70 +403,73 @@ function checkUtxosOfPrivKey(privkey) {
   ];
 }
 function resolvePaymail(paymail) {
-  return "output script"
+  return "output script";
 }
 
-function getUriObject(uriString, options) {
-  bUri = url.parse(uriString + "");
-  if (!bUri.host && !options.strictAboutScheme)
-    bUri = url.parse("bitcoin:" + uriString);
-  // The URL library is NOT case sensitive in hosts. 
-  // It converts them to lowerCase. 
-  // But hosts can be addresses. They should be case sensitive.
-  // For that reason I make my own URI object.
+function getUriObject(uriString) {
   bitcoinUri = {
-    host: uriString.substr(uriString.toLowerCase().indexOf(bUri.host), bUri.host.length),
-    search: bUri.search,
-    protocol: bUri.protocol,
-  }
+    host: uriString.substring(
+      uriString.indexOf(":")+1,
+      uriString.indexOf("?")
+    ),
+    search: uriString.substring(
+      uriString.indexOf("?")
+    ),
+    protocol: uriString.substring(
+      0,
+      uriString.indexOf(":") + 1
+    ),
+  };
   bitcoinUri.searchParams = getJsonFromUrlSearch(bitcoinUri.search);
 
   function getJsonFromUrlSearch(urlSearchQuery) {
     var result = {};
-    urlSearchQuery.substr(1).split("&").forEach(function(part) {
-      var item = part.split("=");
-      result[item[0]] = decodeURIComponent(item[1]);
-    });
+    urlSearchQuery
+      .substr(1)
+      .split("&")
+      .forEach(function(part) {
+        var item = part.split("=");
+        result[item[0]] = decodeURIComponent(item[1]);
+      });
     return result;
   }
 
+  // console.log(JSON.stringify(bitcoinUri,null,1));
   return bitcoinUri;
 }
 
 defaultOptions = {
-  strictAboutScheme: false,
-  checkUtxosOfPrivKeyFunction: (privkey) => checkUtxosOfPrivKey(privkey),
-  paymailResolverFunction: (paymail) => resolvePaymail(paymail),
+  checkUtxosOfPrivKeyFunction: privkey => checkUtxosOfPrivKey(privkey),
+  paymailResolverFunction: paymail => resolvePaymail(paymail)
 };
 
 async function parse(bitcoinUriString, options = defaultOptions) {
   for (const key in defaultOptions)
-    options[key] = options[key] !== undefined ? options[key] : defaultOptions[key];
+    options[key] =
+      options[key] !== undefined ? options[key] : defaultOptions[key];
 
   bitcoinUri = getUriObject(bitcoinUriString, options);
 
   var uriType = findUriType(bitcoinUri);
 
-  var isBtcProtocol = (uriType === "bip21" || uriType === "bip72")
-  if(isBtcProtocol)
-    console.warn("Warning: This might be a BTC request.");
+  var isBtcProtocol = uriType === "address" || uriType === "bip21" || uriType === "bip72";
+  if (isBtcProtocol) console.warn("Warning: This might be a BTC request.");
 
-  var schema = schemes.filter(s=>s.name === uriType)[0];
-  if(!schema)
-    throw new Error(uriType);
-    
+  var schema = schemes.filter(s => s.name === uriType)[0];
+  if (!schema) throw new Error(uriType);
+
   return {
     type: uriType,
     outputs: await schema.parseOutputs(bitcoinUri, options),
     inputs: await schema.parseInputs(bitcoinUri, options),
     memo: await schema.parseMemo(bitcoinUri, options),
     isBSV: !isBtcProtocol,
-  }
+    peer: await schema.parsePeer(bitcoinUri, options),
+    peerProtocol: schema.peerProtocol
+  };
 }
 
 module.exports = {
-  parse : parse,
-  supportedSchemes: schemes.map(s=>s.name)
+  parse: parse,
+  supportedSchemes: schemes.map(s => s.name)
 };
-
-
