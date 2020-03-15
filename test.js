@@ -1,10 +1,14 @@
 var bitUriParser = require("./bitUriParser");
 
 async function testParsing(uri, expectedResult, done) {
+  var logsForThisTest = [];
   var paymentRequest = null;
   (async function _doTest() {
     // console.log(uri);
-    paymentRequest = await bitUriParser.parse(uri);
+    paymentRequest = await bitUriParser.parse(
+      uri,
+      (options = { debugLog: i => logsForThisTest.push(i) })
+    );
 
     expect(paymentRequest.type).toBe(expectedResult.type);
     expect(paymentRequest.memo).toBe(expectedResult.memo);
@@ -30,13 +34,26 @@ async function testParsing(uri, expectedResult, done) {
       expect(paymentRequest.outputs[i].script).toBe(
         expectedResult.outputs[i].script
       );
-      expect(paymentRequest.outputs[i].amount).toBe(
-        expectedResult.outputs[i].amount
+      expect(paymentRequest.outputs[i].satoshis).toBe(
+        expectedResult.outputs[i].satoshis
       );
     }
   })()
     .then(done)
     .catch(e => {
+      console.log(
+        "Test Output: \n---------------\n\n" +
+          logsForThisTest
+            .map(i =>
+              i
+                .split("\n")
+                .map(l => ">\t\t" + l)
+                .join("\n")
+            )
+            .join("\n") +
+          "\n\n---------------\n"
+      );
+
       var message = e + "\n\n URI: " + uri;
       if (paymentRequest)
         message +=
@@ -44,7 +61,7 @@ async function testParsing(uri, expectedResult, done) {
           JSON.stringify(paymentRequest) +
           "\n\n Expected:\n" +
           JSON.stringify(expectedResult);
-      message += "\n\n " + e.stack
+      message += "\n\n " + e.stack;
       done(message);
     });
 }
@@ -118,7 +135,7 @@ testData = {
       peerProtocol: "bip270"
     }
   },
-  "bip275": {
+  bip275: {
     uris: [
       "bitcoin:?req-bip275&paymentUrl=https%3A%2F%2Fexample.com%2Fpayments&network=bitcoin&outputs=%5B%7B%22amount%22%3A1000000%2C%22script%22%3A%2276a914808a0e92d0d42b650f083dd223d556b410699d6f88ac%22%7D%2C%7B%22amount%22%3A1000000%2C%22script%22%3A%2276a914eb280a7c70784b5136119cb889e024d22437ed4c88ac%22%7D%5D"
     ],
@@ -126,14 +143,14 @@ testData = {
       type: "bip275",
       outputs: [
         {
-          "satoshis": 1000000,
-          "script":"76a914808a0e92d0d42b650f083dd223d556b410699d6f88ac"
+          satoshis: 1000000,
+          script: "76a914808a0e92d0d42b650f083dd223d556b410699d6f88ac"
         },
         {
-          "satoshis": 1000000,
-          "script": "76a914eb280a7c70784b5136119cb889e024d22437ed4c88ac"
+          satoshis: 1000000,
+          script: "76a914eb280a7c70784b5136119cb889e024d22437ed4c88ac"
         }
-     ],
+      ],
       inputs: [],
       memo: "P2P Transaction",
       isBSV: true,

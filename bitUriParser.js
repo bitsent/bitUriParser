@@ -196,7 +196,7 @@ var schemes = [
     checkPath: p => p === "",
     checkParams: p =>
       ["req-inputs", "req-bip275", "paymentUrl", "network", "outputs"].every(
-        i => typeof(p[i]) === "string"
+        i => typeof p[i] === "string"
       ),
     knownRequiredParams: ["req-inputs", "req-bip275"],
 
@@ -211,7 +211,7 @@ var schemes = [
     checkhSchema: s => s === "bitcoin:",
     checkPath: p => p === "",
     checkParams: p =>
-      ["req-inputs", "req-bip272", "r"].every(i => typeof(p[i]) === "string"),
+      ["req-inputs", "req-bip272", "r"].every(i => typeof p[i] === "string"),
     knownRequiredParams: ["req-inputs", "req-bip272"],
 
     parseOutputs: (uri, o) => create_BIP272_Outputs(uri, o),
@@ -226,7 +226,7 @@ var schemes = [
     checkPath: p => p === "",
     checkParams: p =>
       ["req-bip275", "paymentUrl", "network", "outputs"].every(
-        i => typeof(p[i]) === "string"
+        i => typeof p[i] === "string"
       ),
     knownRequiredParams: ["req-bip275"],
 
@@ -240,7 +240,7 @@ var schemes = [
     name: "bip272strict",
     checkhSchema: s => s === "bitcoin:",
     checkPath: p => p === "",
-    checkParams: p => ["req-bip272", "r"].every(i => typeof(p[i]) === "string"),
+    checkParams: p => ["req-bip272", "r"].every(i => typeof p[i] === "string"),
     knownRequiredParams: ["req-bip272"],
 
     parseOutputs: (uri, o) => create_BIP272_Outputs(uri, o),
@@ -253,7 +253,7 @@ var schemes = [
     name: "bip272",
     checkhSchema: s => s === "bitcoin:",
     checkPath: p => p === "",
-    checkParams: p => ["sv", "r"].every(i => typeof(p[i]) === "string"),
+    checkParams: p => ["sv", "r"].every(i => typeof p[i] === "string"),
     knownRequiredParams: [],
 
     parseOutputs: (uri, o) => create_BIP272_Outputs(uri, o),
@@ -298,7 +298,7 @@ var schemes = [
     name: "bip72",
     checkhSchema: s => s === "bitcoin:",
     checkPath: p => p === "",
-    checkParams: p => typeof(p['r']) === "string",
+    checkParams: p => typeof p["r"] === "string",
     knownRequiredParams: [],
 
     parseOutputs: (uri, o) => create_BIP72_Outputs(uri, o),
@@ -349,7 +349,9 @@ function create_BIP272_BIP282_Inputs(uri, o) {
 function create_BIP21_Output(uri, o) {
   return {
     script: scripter.p2pkh(uri.host),
-    satoshis: (parseFloat(uri.searchParams["amount"]) * 100000000).toFixed(8)
+    satoshis: parseInt(
+      parseFloat(uri.searchParams["amount"]).toFixed(8) * 100000000
+    )
   };
 }
 function create_BIP72_Outputs(uri, o) {
@@ -358,33 +360,52 @@ function create_BIP72_Outputs(uri, o) {
   // TODO: Add MEMO property to the 'o' object
 }
 
-function findUriType(bitcoinUri) {
+function findUriType(bitcoinUri, options) {
   var requiredParams = [];
   Object.keys(bitcoinUri.searchParams).forEach(k => {
     if (k.startsWith("req-")) requiredParams.push(k);
   });
 
-  var comparisons = []
+  var comparisons = [];
   for (var sch in schemes) {
-    comparisons.push ({
+    comparisons.push({
       name: schemes[sch].name,
       protocolPass: schemes[sch].checkhSchema(bitcoinUri.protocol),
       pathPass: schemes[sch].checkPath(bitcoinUri.host),
       paramsPass: schemes[sch].checkParams(bitcoinUri.searchParams),
       unknownRequiredParams: requiredParams.filter(
         p => schemes[sch].knownRequiredParams.indexOf(p) < 0
-      ),
+      )
     });
   }
 
-  var matches = comparisons.filter(i=> i.protocolPass && i.pathPass && i.paramsPass && i.unknownRequiredParams.length === 0)
+  var matches = comparisons.filter(
+    i =>
+      i.protocolPass &&
+      i.pathPass &&
+      i.paramsPass &&
+      i.unknownRequiredParams.length === 0
+  );
 
-  console.log("comparisons", JSON.stringify(comparisons.map(i=>JSON.stringify(i)), null, 1));
-  console.log("matches", JSON.stringify(matches.map(i=>JSON.stringify(i)), null, 1));
+  options.debugLog(
+    "Scheme Comparisons : " +
+      JSON.stringify(
+        comparisons.map(i => JSON.stringify(i)),
+        null,
+        1
+      )
+  );
+  options.debugLog(
+    "Matches : " +
+      JSON.stringify(
+        matches.map(i => JSON.stringify(i)),
+        null,
+        1
+      )
+  );
 
-  if (matches[0])
-    return matches[0].name;
-  
+  if (matches[0]) return matches[0].name;
+
   return (
     "Unknown Bitcoin URI" +
     (requiredParams.length > 0
@@ -406,19 +427,14 @@ function resolvePaymail(paymail) {
   return "output script";
 }
 
-function getUriObject(uriString) {
+function getUriObject(uriString, options) {
   bitcoinUri = {
     host: uriString.substring(
-      uriString.indexOf(":")+1,
+      uriString.indexOf(":") + 1,
       uriString.indexOf("?")
     ),
-    search: uriString.substring(
-      uriString.indexOf("?")
-    ),
-    protocol: uriString.substring(
-      0,
-      uriString.indexOf(":") + 1
-    ),
+    search: uriString.substring(uriString.indexOf("?")),
+    protocol: uriString.substring(0, uriString.indexOf(":") + 1)
   };
   bitcoinUri.searchParams = getJsonFromUrlSearch(bitcoinUri.search);
 
@@ -434,11 +450,15 @@ function getUriObject(uriString) {
     return result;
   }
 
-  // console.log(JSON.stringify(bitcoinUri,null,1));
+  options.debugLog("Parsed URI: \n" + JSON.stringify(bitcoinUri, null, 1));
   return bitcoinUri;
 }
 
 defaultOptions = {
+  debugLog: () => {
+    /** no logging by default */
+    console.log(42);
+  },
   checkUtxosOfPrivKeyFunction: privkey => checkUtxosOfPrivKey(privkey),
   paymailResolverFunction: paymail => resolvePaymail(paymail)
 };
@@ -450,10 +470,14 @@ async function parse(bitcoinUriString, options = defaultOptions) {
 
   bitcoinUri = getUriObject(bitcoinUriString, options);
 
-  var uriType = findUriType(bitcoinUri);
+  var uriType = findUriType(bitcoinUri, options);
 
-  var isBtcProtocol = uriType === "address" || uriType === "bip21" || uriType === "bip72";
-  if (isBtcProtocol) console.warn("Warning: This might be a BTC request.");
+  var isBtcProtocol =
+    uriType === "address" || uriType === "bip21" || uriType === "bip72";
+  if (isBtcProtocol)
+    console.warn(
+      "Warning: This might be a BTC request. (type=" + uriType + ")"
+    );
 
   var schema = schemes.filter(s => s.name === uriType)[0];
   if (!schema) throw new Error(uriType);
