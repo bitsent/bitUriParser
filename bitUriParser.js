@@ -196,7 +196,7 @@ var schemes = [
     checkPath: p => p === "",
     checkParams: p =>
       ["req-inputs", "req-bip275", "paymentUrl", "network", "outputs"].every(
-        i => p[i] !== null
+        i => typeof(p[i]) === "string"
       ),
     knownRequiredParams: ["req-inputs", "req-bip275"],
 
@@ -211,7 +211,7 @@ var schemes = [
     checkhSchema: s => s === "bitcoin:",
     checkPath: p => p === "",
     checkParams: p =>
-      ["req-inputs", "req-bip272", "r"].every(i => p[i] !== null),
+      ["req-inputs", "req-bip272", "r"].every(i => typeof(p[i]) === "string"),
     knownRequiredParams: ["req-inputs", "req-bip272"],
 
     parseOutputs: (uri, o) => create_BIP272_Outputs(uri, o),
@@ -226,7 +226,7 @@ var schemes = [
     checkPath: p => p === "",
     checkParams: p =>
       ["req-bip275", "paymentUrl", "network", "outputs"].every(
-        i => p[i] !== null
+        i => typeof(p[i]) === "string"
       ),
     knownRequiredParams: ["req-bip275"],
 
@@ -240,7 +240,7 @@ var schemes = [
     name: "bip272strict",
     checkhSchema: s => s === "bitcoin:",
     checkPath: p => p === "",
-    checkParams: p => ["req-bip272", "r"].every(i => p[i] !== null),
+    checkParams: p => ["req-bip272", "r"].every(i => typeof(p[i]) === "string"),
     knownRequiredParams: ["req-bip272"],
 
     parseOutputs: (uri, o) => create_BIP272_Outputs(uri, o),
@@ -253,7 +253,7 @@ var schemes = [
     name: "bip272",
     checkhSchema: s => s === "bitcoin:",
     checkPath: p => p === "",
-    checkParams: p => ["sv", "r"].every(i => p[i] !== null),
+    checkParams: p => ["sv", "r"].every(i => typeof(p[i]) === "string"),
     knownRequiredParams: [],
 
     parseOutputs: (uri, o) => create_BIP272_Outputs(uri, o),
@@ -298,7 +298,7 @@ var schemes = [
     name: "bip72",
     checkhSchema: s => s === "bitcoin:",
     checkPath: p => p === "",
-    checkParams: p => p["r"] !== null,
+    checkParams: p => typeof(p['r']) === "string",
     knownRequiredParams: [],
 
     parseOutputs: (uri, o) => create_BIP72_Outputs(uri, o),
