@@ -181,13 +181,17 @@ var schemes = [
   {
     name: "paymail",
     checkhSchema: s => s === "payto:",
-    checkPath: p => /^([\w\.\-]+)@([\w\-]+)((\.(\w){2,3})+)$/.test(p),
+    checkPath: p => {
+      var regex = /^([\w\.\-]+)@([\w\.\-]+)((\.(\w){2,3})+)$/;
+      return regex.test(p) || regex.test(decodeURIComponent(p));
+    },
     checkParams: p => true,
     knownRequiredParams: [],
 
-    parseOutputs: (uri, o) => [create_Paymail_Output(uri, o)],
+    parseOutputs: async (uri, o) => [await create_Paymail_Output(uri, o)],
     parseInputs: (uri, o) => [],
-    parseMemo: (uri, o) => uri.searchParams["purpose"] || "Send to PayMail",
+    parseMemo: (uri, o) =>
+      uri.searchParams["purpose"] || "Send to " + decodeURIComponent(uri.host),
     parsePeer: (uri, o) => null,
     peerProtocol: null
   },
@@ -314,9 +318,15 @@ function create_PrivateKey_Inputs(uri, o) {
   throw new Error("PrivateKey Not Implemented");
   // TODO: Implement this method
 }
-function create_Paymail_Output(uri, o) {
-  throw new Error("PayTo Not Implemented");
-  // TODO: Implement this method
+async function create_Paymail_Output(uri, o) {
+  var paymailResolveUrl =
+    "https://api.bitsent.net/paymail/" +
+    encodeURIComponent(decodeURIComponent(uri.host));
+  var requestString = await get(paymailResolveUrl, o);
+  return {
+    script: JSON.parse(requestString).output,
+    satoshis: parseInt(uri.searchParams["amount"])
+  };
 }
 function create_BIP275_Outputs(uri, o) {
   var outs = JSON.parse(uri.searchParams["outputs"]);
@@ -340,7 +350,7 @@ function create_BIP275_BIP282_Inputs(uri, o) {
 }
 async function create_BIP272_Outputs(uri, o) {
   var r = uri.searchParams["r"];
-  var requestString = await get(r);
+  var requestString = await get(r, o);
   var req = JSON.parse(requestString);
 
   req = {
@@ -359,12 +369,12 @@ async function create_BIP272_Outputs(uri, o) {
   o["memo"] = req["memo"];
   o["peer"] = req["paymentUrl"];
   o["req-inputs"] = req["req-inputs"];
-  
+
   return req.outputs.map(o => {
     return {
       script: o.script,
       satoshis: parseInt(o.amount)
-    }
+    };
   });
 }
 function create_BIP272_BIP282_Inputs(uri, o) {
@@ -446,13 +456,16 @@ function findUriType(bitcoinUri, options) {
   );
 }
 
-function get(uri) {
+function get(uri, o) {
   var get = uri.startsWith("https:") ? https.get : http.get;
   return new Promise(async (resolve, reject) => {
     get(uri, resp => {
       let data = "";
       resp.on("data", chunk => (data += chunk));
-      resp.on("end", () => resolve(data));
+      resp.on("end", () => {
+        o.debugLog("GET ===> " + data);
+        resolve(data);
+      });
     }).on("error", err => reject(err));
   });
 }
@@ -469,13 +482,16 @@ function resolvePaymail(paymail) {
   return "output script";
 }
 function getUriObject(uriString, options) {
+  var i1 = uriString.indexOf(":");
+  i1 = i1 < 0 ? -1 : i1;
+
+  var i2 = uriString.indexOf("?");
+  i2 = i2 < 0 ? uriString.length : i2;
+
   bitcoinUri = {
-    host: uriString.substring(
-      uriString.indexOf(":") + 1,
-      uriString.indexOf("?")
-    ),
-    search: uriString.substring(uriString.indexOf("?")),
-    protocol: uriString.substring(0, uriString.indexOf(":") + 1)
+    host: uriString.substring(i1 + 1, i2),
+    search: uriString.substring(i2),
+    protocol: uriString.substring(0, i1 + 1)
   };
   bitcoinUri.searchParams = getJsonFromUrlSearch(bitcoinUri.search);
 

@@ -108,6 +108,23 @@ testData = {
       peerProtocol: null
     }
   },
+  "bip21-noParams": {
+    uris: ["bitcoin:1FMif2XbHJx5L2x6QWYKyWEWPpxJC1ipXw"],
+    expected: {
+      type: "bip21",
+      outputs: [
+        {
+          script: "76a9149d7cda4252e8f46b12fee2d14e2d731ac074330688ac",
+          satoshis: NaN
+        }
+      ],
+      inputs: [],
+      memo: "Payment to Address",
+      isBSV: false,
+      peer: null,
+      peerProtocol: null
+    }
+  },
   "bip275-bip282": {
     uris: [
       "bitcoin:?req-bip275&paymentUrl=https%3A%2F%2Fexample.com%2Fpayments&network=bitcoin&outputs=%5B%7B%22amount%22%3A1000000%2C%22script%22%3A%2276a914808a0e92d0d42b650f083dd223d556b410699d6f88ac%22%7D%5D&req-inputs=%5B%7B%22value%22%3A2557931%2C%22txid%22%3A%224d5fcc930d612a23090198a79a9e6f86b5297f480accdbb6f3b2a3a2535dc640%22%2C%22vout%22%3A0%2C%22scriptSig%22%3A%22546865207061796d656e742072656365697665722077696c6c207265706c61636520746869732077697468207468652061637475616c207369676e61747572652e%22%7D%5D"
@@ -161,7 +178,10 @@ testData = {
   },
   bip272strict: {
     uris: [
-      "bitcoin:?sv=&req-bip272=&r=" + encodeURIComponent("https://api.bitsent.net/payment/address/1Dmq5JKtWu4yZRLWBBKh3V2koeemNTYXAY/500000")
+      "bitcoin:?sv=&req-bip272=&r=" +
+        encodeURIComponent(
+          "https://api.bitsent.net/payment/address/1Dmq5JKtWu4yZRLWBBKh3V2koeemNTYXAY/500000"
+        )
     ],
     expected: {
       type: "bip272strict",
@@ -180,7 +200,10 @@ testData = {
   },
   bip272: {
     uris: [
-      "bitcoin:?sv=&r=" + encodeURIComponent("https://api.bitsent.net/payment/address/1Dmq5JKtWu4yZRLWBBKh3V2koeemNTYXAY/500000")
+      "bitcoin:?sv=&r=" +
+        encodeURIComponent(
+          "https://api.bitsent.net/payment/address/1Dmq5JKtWu4yZRLWBBKh3V2koeemNTYXAY/500000"
+        )
     ],
     expected: {
       type: "bip272",
@@ -195,6 +218,43 @@ testData = {
       isBSV: true,
       peer: "https://api.bitsent.net/payment/pay",
       peerProtocol: "bip270"
+    }
+  },
+  paymail: {
+    uris: ["payto:aleks@api.bitsent.net?purpose=PayMe&amount=1234567"],
+    expected: {
+      type: "paymail",
+      outputs: [
+        {
+          satoshis: 1234567,
+          script: "76a9148c1bf1254637c3b521ce47f4b63636d11244a0bd88ac"
+        }
+      ],
+      inputs: [],
+      memo: "PayMe",
+      isBSV: true,
+      peer: null,
+      peerProtocol: null
+    }
+  },
+  "paymail-noParams": {
+    uris: [
+      "payto:" + encodeURIComponent("aleks@api.bitsent.net"),
+      "payto:aleks@api.bitsent.net"
+    ],
+    expected: {
+      type: "paymail",
+      outputs: [
+        {
+          satoshis: NaN,
+          script: "76a9148c1bf1254637c3b521ce47f4b63636d11244a0bd88ac"
+        }
+      ],
+      inputs: [],
+      memo: "Send to aleks@api.bitsent.net",
+      isBSV: true,
+      peer: null,
+      peerProtocol: null
     }
   }
 };
