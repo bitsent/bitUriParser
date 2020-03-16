@@ -67,6 +67,25 @@ async function testParsing(uri, expectedResult, done) {
 }
 
 testData = {
+  address: {
+    uris: [
+      "1FMif2XbHJx5L2x6QWYKyWEWPpxJC1ipXw"
+    ],
+    expected: {
+      type: "address",
+      outputs: [
+        {
+          script: "76a9149d7cda4252e8f46b12fee2d14e2d731ac074330688ac",
+          satoshis: NaN
+        }
+      ],
+      inputs: [],
+      memo: "Payment to Address",
+      isBSV: false,
+      peer: null,
+      peerProtocol: null
+    }
+  },
   bip21sv: {
     uris: [
       "bitcoin:1FMif2XbHJx5L2x6QWYKyWEWPpxJC1ipXw?sv=&amount=0.00123456&label=PayMe",

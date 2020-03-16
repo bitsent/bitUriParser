@@ -498,7 +498,8 @@ function getUriObject(uriString, options) {
       .split("&")
       .forEach(function(part) {
         var item = part.split("=");
-        result[item[0]] = decodeURIComponent(item[1]);
+        if(item[0])
+          result[item[0]] = decodeURIComponent(item[1]);
       });
     return result;
   }

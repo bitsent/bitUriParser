@@ -6,6 +6,10 @@ NO LICENSE YET
 # EXAMPLES
 
 ```js
+//// address #0 ////
+var txRequest = await bitUriParser.parse("1FMif2XbHJx5L2x6QWYKyWEWPpxJC1ipXw")
+```
+```js
 //// bip21sv #0 ////
 var txRequest = await bitUriParser.parse("bitcoin:1FMif2XbHJx5L2x6QWYKyWEWPpxJC1ipXw?sv=&amount=0.00123456&label=PayMe")
 ```
