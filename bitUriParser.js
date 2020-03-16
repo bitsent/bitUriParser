@@ -466,13 +466,7 @@ function get(uri, o) {
   });
 }
 async function checkUtxosOfPrivKey(privkey, o) {
-  return [
-    {
-      txid: "txid 1",
-      vout: 1,
-      satoshis: 10000
-    }
-  ];
+  throw new Error("Not Implemented");
 }
 async function resolvePaymail(paymail, o) {
   var paymailResolveUrl =
