@@ -4,6 +4,11 @@ A parser for bitcoin URI strings
 ### NO LICENSE YET
 Contact aleks@bitcoinsofia.com for licensing.
 
+# TODO
+
+- The library doesn't support **Private Keys** yet.
+- The library doesn't support **BIP72 links** yet.
+
 # EXAMPLES
 
 ```js
