@@ -1,7 +1,8 @@
 # bitUriParser
 A parser for bitcoin URI strings
 
-NO LICENSE YET
+### NO LICENSE YET
+Contact aleks@bitcoinsofia.com for licensing.
 
 # EXAMPLES
 
