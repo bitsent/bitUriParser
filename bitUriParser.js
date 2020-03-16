@@ -319,12 +319,8 @@ function create_PrivateKey_Inputs(uri, o) {
   // TODO: Implement this method
 }
 async function create_Paymail_Output(uri, o) {
-  var paymailResolveUrl =
-    "https://api.bitsent.net/paymail/" +
-    encodeURIComponent(decodeURIComponent(uri.host));
-  var requestString = await get(paymailResolveUrl, o);
   return {
-    script: JSON.parse(requestString).output,
+    script: await o.paymailResolverFunction(uri.host, o),
     satoshis: parseInt(uri.searchParams["amount"])
   };
 }
@@ -469,7 +465,7 @@ function get(uri, o) {
     }).on("error", err => reject(err));
   });
 }
-function checkUtxosOfPrivKey(privkey) {
+async function checkUtxosOfPrivKey(privkey, o) {
   return [
     {
       txid: "txid 1",
@@ -478,9 +474,15 @@ function checkUtxosOfPrivKey(privkey) {
     }
   ];
 }
-function resolvePaymail(paymail) {
-  return "output script";
+async function resolvePaymail(paymail, o) {
+  var paymailResolveUrl =
+    "https://api.bitsent.net/paymail/" +
+    encodeURIComponent(decodeURIComponent(paymail));
+  var requestString = await get(paymailResolveUrl, o);
+  var outputScript = JSON.parse(requestString).output;
+  return outputScript;
 }
+
 function getUriObject(uriString, options) {
   var i1 = uriString.indexOf(":");
   i1 = i1 < 0 ? -1 : i1;
@@ -515,8 +517,8 @@ defaultOptions = {
   debugLog: () => {
     /** no logging by default */
   },
-  checkUtxosOfPrivKeyFunction: privkey => checkUtxosOfPrivKey(privkey),
-  paymailResolverFunction: paymail => resolvePaymail(paymail)
+  checkUtxosOfPrivKeyFunction: checkUtxosOfPrivKey,
+  paymailResolverFunction: resolvePaymail
 };
 
 async function parse(bitcoinUriString, options = defaultOptions) {
