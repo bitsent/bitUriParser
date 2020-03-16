@@ -259,11 +259,23 @@ testData = {
   }
 };
 
-Object.keys(testData).forEach(testName => {
+Object.keys(testData).forEach((testName) => {
   var uris = testData[testName].uris;
   var expected = testData[testName].expected;
   for (let i = 0; i < uris.length; i++)
-    test(testName + " #" + i, function(done) {
-      testParsing(uris[i], expected, done);
-    });
+    if(typeof test !== 'undefined')
+      test(testName + " #" + i, function(done) {
+        testParsing(uris[i], expected, done);
+      });
+    else
+      printMarkdownExample(testName + " #" + i, uris[i]);
 });
+
+
+function printMarkdownExample(testName, uri){
+  console.log("```js");
+  console.log("//// " + testName + " ////")
+  console.log('var txRequest = await bitUriParser.parse("'+uri+'")');
+  console.log("```");
+}
+
