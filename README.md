@@ -1,5 +1,5 @@
 # bitUriParser
-A parser for bitcoiun URI strings
+A parser for bitcoin URI strings
 
 NO LICENSE YET
 
