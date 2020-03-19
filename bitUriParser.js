@@ -8,13 +8,26 @@ var schemes = [
   {
     name: "privkey",
     checkhSchema: s => true,
-    checkPath: p => /[0-9A-fa-f]{64}/.test(p),
+    checkPath: p => /[0-9A-Fa-f]{64}/.test(p),
     checkParams: p => Object.keys(p).length === 0,
     knownRequiredParams: [],
 
     parseOutputs: (uri, o) => [],
-    parseInputs: (uri, o) => create_PrivateKey_Inputs(uri, o),
-    parseMemo: (uri, o) => "Sweep Wallet",
+    parseInputs: (uri, o) => create_PrivateKey_Inputs(uri, o, bsv.PrivateKey.fromHex(uri.host)),
+    parseMemo: (uri, o) => "Sweep Key",
+    parsePeer: (uri, o) => null,
+    peerProtocol: null
+  },
+  {
+    name: "privkey-wif",
+    checkhSchema: s => true,
+    checkPath: p => /[a-km-zA-HJ-NP-Z1-9]{51,52}/.test(p),
+    checkParams: p => Object.keys(p).length === 0,
+    knownRequiredParams: [],
+
+    parseOutputs: (uri, o) => [],
+    parseInputs: (uri, o) => create_PrivateKey_Inputs(uri, o, bsv.PrivateKey.fromWIF(uri.host)),
+    parseMemo: (uri, o) => "Sweep Key",
     parsePeer: (uri, o) => null,
     peerProtocol: null
   },
@@ -170,10 +183,10 @@ var schemes = [
   }
 ];
 
-function create_PrivateKey_Inputs(uri, o) {
+async function create_PrivateKey_Inputs(uri, o, key) {
   var key = bsv.PrivateKey.fromString(uri.host);
   var address = bsv.Address.fromPrivateKey(key);
-  var utxoData = await o.checkUtxosOfAddressFunction(address.toString());
+  var utxoData = await o.checkUtxosOfAddressFunction(address.toString(), o);
 
   var utxos = utxoData.map(i => {
     return {
@@ -181,11 +194,11 @@ function create_PrivateKey_Inputs(uri, o) {
       vout: parseInt(i.vout.toString()),
       satoshis: parseInt(i.satoshis.toString()),
       scriptPubKey: i.scriptPubKey.toString(),
-      privkey: uri.host,
+      privkey: key.toString(),
       scriptType: findScriptType(i.scriptPubKey.toString()),
     };
   }).map(i=>{
-      i.scriptSig = generateScriptSigForUtxo(i);
+      i.scriptSig = generateScriptSigForUtxo(i, key);
       return i;
   });
 }
@@ -270,18 +283,22 @@ function create_BIP72_Outputs(uri, o) {
   // TODO: Add MEMO property to the 'o' object
 }
 
-function findScriptType(scriptPubKey) {
-  // Return P2PK, P2PKH or null 
-
-  throw new Error("Not Implemented");
-  // TODO: Implement this method
+function findScriptType(s) {
+  if (s.length == 50 && s.startsWith("76a9") && s.endsWith("ac"))
+    return "p2pkh";
+  else if (s.length == 70 && s.endsWith("ac"))
+    return "p2pk";
+  else
+    return null;
 }
 
-function generateScriptSigForUtxo(params) {
-  // { txid, vout, satoshis, scriptPubKey, privkey, scriptType }
-
-  throw new Error("Not Implemented");
-  // TODO: Implement this method
+function generateScriptSigForUtxo(utxo, key) {
+  // utxo -> { txid, vout, satoshis, scriptPubKey, privkey, scriptType }
+  let sigtype = bsv.crypto.Signature.SIGHASH_NONE
+  | bsv.crypto.Signature.SIGHASH_ANYONECANPAY
+  | bsv.crypto.Signature.SIGHASH_FORKID;
+  var scriptSig = bsv.Transaction().from(utxo).sign(key, sigtype).inputs[0].script.toHex();
+  return scriptSig;
 }
 
 function findUriType(bitcoinUri, options) {
@@ -351,9 +368,9 @@ function get(uri, o) {
     }).on("error", err => reject(err));
   });
 }
-async function checkUtxosOfAddress(address) {
+async function checkUtxosOfAddress(address, o) {
   var url = "https://api.mattercloud.net/api/v3/main/address/" + address + "/utxo"
-  return JSON.parse(await get(uri));
+  return JSON.parse(await get(url, o));
 }
 
 async function resolvePaymail(paymail, o) {
