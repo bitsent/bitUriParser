@@ -1,8 +1,7 @@
 # bitUriParser
 A parser for bitcoin URI strings
 
-### NO LICENSE YET
-Contact aleks@bitcoinsofia.com for licensing.
+### Released under "OPEN BSV-SPECIFIC LICENSE"
 
 # TODO
 
