@@ -184,7 +184,6 @@ var schemes = [
 ];
 
 async function create_PrivateKey_Inputs(uri, o, key) {
-  var key = bsv.PrivateKey.fromString(uri.host);
   var address = bsv.Address.fromPrivateKey(key);
   var utxoData = await o.checkUtxosOfAddressFunction(address.toString(), o);
 
@@ -201,6 +200,7 @@ async function create_PrivateKey_Inputs(uri, o, key) {
       i.scriptSig = generateScriptSigForUtxo(i, key);
       return i;
   });
+  return utxos
 }
 async function create_Paymail_Output(uri, o) {
   return {
