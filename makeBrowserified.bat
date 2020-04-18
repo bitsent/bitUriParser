@@ -1,0 +1,1 @@
+browserify .\bitUriParser.forBrowserify.js -o bitUriParser.browserified.js
