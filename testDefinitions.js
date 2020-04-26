@@ -1,6 +1,11 @@
 var bitUriParser = require("./bitUriParser");
 var fs = require("fs");
 
+var axios = require("axios")
+axios.defaults.adapter = require('axios/lib/adapters/http');
+
+const SKIP_CHECK = "SKIP_CHECK"
+
 async function testParsing(uri, expectedResult, done) {
   var logsForThisTest = [];
   var paymentRequest = null;
@@ -11,33 +16,25 @@ async function testParsing(uri, expectedResult, done) {
       (options = { debugLog: i => logsForThisTest.push(i) })
     );
 
-    expect(paymentRequest.type).toBe(expectedResult.type);
-    expect(paymentRequest.memo).toBe(expectedResult.memo);
-    expect(paymentRequest.isBSV).toBe(expectedResult.isBSV);
-
-    expect(paymentRequest.peer).toBe(expectedResult.peer);
-    expect(paymentRequest.peerProtocol).toBe(expectedResult.peerProtocol);
+    [ "type", "memo", "isBSV", "peer", "peerProtocol" ].forEach(field => {
+      if (expectedResult[field] !== SKIP_CHECK)
+        expect(paymentRequest[field]).toBe(expectedResult[field]);
+    })
 
     expect(paymentRequest.inputs.length).toBe(expectedResult.inputs.length);
     for (let i = 0; i < paymentRequest.inputs.length; i++) {
-      expect(paymentRequest.inputs[i].txid).toBe(expectedResult.inputs[i].txid);
-      expect(paymentRequest.inputs[i].vout).toBe(expectedResult.inputs[i].vout);
-      expect(paymentRequest.inputs[i].satoshis).toBe(
-        expectedResult.inputs[i].satoshis
-      );
-      expect(paymentRequest.inputs[i].scriptSig).toBe(
-        expectedResult.inputs[i].scriptSig
-      );
+      [ "txid", "vout", "satoshis", "scriptSig"].forEach(field => {
+        if (expectedResult.inputs[i][field] !== SKIP_CHECK)
+          expect(paymentRequest.inputs[i][field]).toBe(expectedResult.inputs[i][field]);
+      })
     }
 
     expect(paymentRequest.outputs.length).toBe(expectedResult.outputs.length);
     for (let i = 0; i < paymentRequest.outputs.length; i++) {
-      expect(paymentRequest.outputs[i].script).toBe(
-        expectedResult.outputs[i].script
-      );
-      expect(paymentRequest.outputs[i].satoshis).toBe(
-        expectedResult.outputs[i].satoshis
-      );
+      [ "script", "satoshis" ].forEach(field => {
+        if (expectedResult.outputs[i][field] !== SKIP_CHECK)
+          expect(paymentRequest.outputs[i][field]).toBe(expectedResult.outputs[i][field]);
+      })
     }
   })()
     .then(done)
@@ -45,12 +42,7 @@ async function testParsing(uri, expectedResult, done) {
       console.log(
         "Test Output: \n---------------\n\n" +
         logsForThisTest
-          .map(i =>
-            i
-              .split("\n")
-              .map(l => ">\t\t" + l)
-              .join("\n")
-          )
+          .map( i => ">>>>>    " + i.split("\n").join("\n>        ") )
           .join("\n") +
         "\n\n---------------\n"
       );
@@ -303,6 +295,26 @@ testData = {
       peerProtocol: null
     }
   },
+  "paymail-P2P": {
+    uris: [
+      "payto:aleks@moneybutton.com?purpose=PayMe&amount=1234567",
+    ],
+    expected: {
+      type: "paymail",
+      mainProtocol: "paymail",
+      outputs: [
+        {
+          satoshis: 1234567,
+          script: SKIP_CHECK
+        }
+      ],
+      inputs: [],
+      memo: "PayMe",
+      isBSV: true,
+      peer: "https://www.moneybutton.com/api/v1/bsvalias/p2p-payment-destination/aleks@moneybutton.com",
+      peerProtocol: "paymail"
+    }
+  },
   "paymail-noParams": {
     uris: [
       "payto:" + encodeURIComponent("aleks@api.bitsent.net"),
@@ -337,7 +349,7 @@ function generateTestCalls(testData) {
   
   lines.push("\n// RUN with 'jest'\n");
 
-  lines.push("\nconst { testData, testParsing } = require('./testDefinitions')\n");
+  lines.push("\nconst { testData, testParsing } = require('../testDefinitions')\n");
 
   Object.keys(testData).forEach((testName) => {
     lines.push(`\n// ${testName}`);
@@ -350,8 +362,8 @@ function generateTestCalls(testData) {
     });
   });
 
-  fs.writeFileSync('test.js', lines.join("\n"));
-  console.log("Generated test.js");
+  fs.writeFileSync('test/test.js', lines.join("\n"));
+  console.log("Generated test/test.js");
 }
 
 function generateMarkdownExamples(testData) {
@@ -382,7 +394,7 @@ function generateMarkdownExamples(testData) {
 
 if (typeof test === 'undefined') {
   console.log("Calling 'Test.js' directly generates the tests, but doesn't run them.");
-  console.log("To run the generated tests, call 'jest'.")
+  console.log("To run the generated tests, call 'jest'.");
   generateTestCalls(testData);
   generateMarkdownExamples(testData);
 }

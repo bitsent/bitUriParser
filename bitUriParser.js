@@ -1,6 +1,5 @@
 var url = require("url");
-var http = require("http");
-var https = require("https");
+var axios = require("axios");
 var bsv = require("bsv");
 
 // the schemes are ordered - more strict to less strict
@@ -65,8 +64,8 @@ var schemes = [
     parseInputs: (uri, o) => [],
     parseMemo: (uri, o) =>
       uri.searchParams["purpose"] || "Send to " + decodeURIComponent(uri.host),
-    parsePeer: (uri, o) => null,
-    getPeerProtocol: (uri, o) => null
+    parsePeer: (uri, o) => check_Paymail_Peer(uri, o),
+    getPeerProtocol: (uri, o) => o["peer"] ? "paymail" : null
   },
   {
     name: "bip275-bip282",
@@ -234,6 +233,25 @@ async function create_Paymail_Output(uri, o) {
     satoshis: parseInt(uri.searchParams["amount"])
   };
 }
+async function check_Paymail_Peer(uri, o) {
+  var paymail = decodeURIComponent(uri.host);
+  var atIndex = paymail.indexOf("@");
+  var alias = paymail.substr(0, atIndex);
+  var host = paymail.substr(atIndex + 1);
+  var capabilitiesURL = `https://${host}/.well-known/bsvalias`;
+  var req = await get(capabilitiesURL, o);
+  if(!req.capabilities)
+    throw new Error(`Failed to get Paymail Provider Capabilities of '${host}'`
+      +`\nURL: ${capabilitiesURL}`
+      +`\nReq: ${JSON.stringify(req)}`)
+  var peer = req.capabilities["2a40af698840"]
+  if(peer) {
+    peer = peer.replace("{alias}", alias).replace("{domain.tld}", host);
+    o["peer"] = peer;
+    return peer;
+  }
+  else return null
+}
 function create_BIP275_Outputs(uri, o) {
   var outs = JSON.parse(uri.searchParams["outputs"]);
   return outs.map(o => {
@@ -257,8 +275,7 @@ function create_BIP275_BIP282_Inputs(uri, o) {
 }
 async function create_BIP272_Outputs(uri, o) {
   var r = uri.searchParams["r"];
-  var requestString = await get(r, o);
-  var req = JSON.parse(requestString);
+  var req = await get(r, o);
 
   req = {
     network: "bitcoin",
@@ -381,22 +398,15 @@ function findUriType(bitcoinUri, options) {
   );
 }
 
-function get(uri, o) {
-  var get = uri.startsWith("https:") ? https.get : http.get;
-  return new Promise(async (resolve, reject) => {
-    get(uri, resp => {
-      let data = "";
-      resp.on("data", chunk => (data += chunk));
-      resp.on("end", () => {
-        o.debugLog("GET ===> " + data);
-        resolve(data);
-      });
-    }).on("error", err => reject(err));
-  });
+async function get(uri, o) {
+  o.debugLog(`GETTING ${uri}`);
+  var res = await axios.get(uri);
+  o.debugLog(`GET ${uri} ===> ${JSON.stringify(res.data)}`);
+  return res.data;
 }
 async function checkUtxosOfAddress(address, o) {
   var url = "https://api.mattercloud.net/api/v3/main/address/" + address + "/utxo"
-  return JSON.parse(await get(url, o));
+  return await get(url, o);
 }
 
 async function resolvePaymail(paymail, o) {
@@ -404,7 +414,7 @@ async function resolvePaymail(paymail, o) {
     "https://api.bitsent.net/paymail/" +
     encodeURIComponent(decodeURIComponent(paymail));
   var requestString = await get(paymailResolveUrl, o);
-  var outputScript = JSON.parse(requestString).output;
+  var outputScript = requestString.output;
   return outputScript;
 }
 

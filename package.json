@@ -9,6 +9,7 @@
   "author": "Aleksandar Dinkov",
   "license": "NONE",
   "dependencies": {
+    "axios": "^0.19.2",
     "bsv": "^1.3.0"
   },
   "devDependencies": {

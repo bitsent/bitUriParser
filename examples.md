@@ -131,6 +131,14 @@ var txRequest = await bitUriParser.parse(
 ```
 
 ```js
+//// paymail-P2P ////
+
+var txRequest = await bitUriParser.parse(
+    "payto:aleks@moneybutton.com?purpose=PayMe&amount=1234567"
+);
+```
+
+```js
 //// paymail-noParams ////
 
 var txRequest = await bitUriParser.parse(
