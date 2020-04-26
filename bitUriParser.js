@@ -17,7 +17,7 @@ var schemes = [
     parseInputs: (uri, o) => create_PrivateKey_Inputs(uri, o, bsv.PrivateKey.fromHex(uri.host)),
     parseMemo: (uri, o) => "Sweep Key",
     parsePeer: (uri, o) => null,
-    peerProtocol: null
+    getPeerProtocol: (uri, o) => null
   },
   {
     name: "privkey-wif",
@@ -31,7 +31,7 @@ var schemes = [
     parseInputs: (uri, o) => create_PrivateKey_Inputs(uri, o, bsv.PrivateKey.fromWIF(uri.host)),
     parseMemo: (uri, o) => "Sweep Key",
     parsePeer: (uri, o) => null,
-    peerProtocol: null
+    getPeerProtocol: (uri, o) => null
   },
   {
     name: "address",
@@ -48,7 +48,7 @@ var schemes = [
       uri.searchParams["message"] ||
       "Payment to Address",
     parsePeer: (uri, o) => null,
-    peerProtocol: null
+    getPeerProtocol: (uri, o) => null
   },
   {
     name: "paymail",
@@ -66,7 +66,7 @@ var schemes = [
     parseMemo: (uri, o) =>
       uri.searchParams["purpose"] || "Send to " + decodeURIComponent(uri.host),
     parsePeer: (uri, o) => null,
-    peerProtocol: null
+    getPeerProtocol: (uri, o) => null
   },
   {
     name: "bip275-bip282",
@@ -83,7 +83,7 @@ var schemes = [
     parseInputs: (uri, o) => create_BIP275_BIP282_Inputs(uri, o),
     parseMemo: (uri, o) => uri.searchParams["memo"] || "P2P Transaction",
     parsePeer: (uri, o) => uri.searchParams["paymentUrl"],
-    peerProtocol: "bip270"
+    getPeerProtocol: (uri, o) => "bip270"
   },
   {
     name: "bip272-bip282",
@@ -98,7 +98,7 @@ var schemes = [
     parseInputs: (uri, o) => create_BIP272_BIP282_Inputs(uri, o),
     parseMemo: (uri, o) => o["memo"] || "P2P Transaction",
     parsePeer: (uri, o) => o["peer"],
-    peerProtocol: "bip270"
+    getPeerProtocol: (uri, o) => "bip270"
   },
   {
     name: "bip275",
@@ -115,7 +115,7 @@ var schemes = [
     parseInputs: (uri, o) => [],
     parseMemo: (uri, o) => uri.searchParams["memo"] || "P2P Transaction",
     parsePeer: (uri, o) => uri.searchParams["paymentUrl"],
-    peerProtocol: "bip270"
+    getPeerProtocol: (uri, o) => "bip270"
   },
   {
     name: "bip272strict",
@@ -129,7 +129,7 @@ var schemes = [
     parseInputs: (uri, o) => [],
     parseMemo: (uri, o) => o["memo"] || "P2P Transaction",
     parsePeer: (uri, o) => o["peer"],
-    peerProtocol: "bip270"
+    getPeerProtocol: (uri, o) => "bip270"
   },
   {
     name: "bip272",
@@ -143,7 +143,7 @@ var schemes = [
     parseInputs: (uri, o) => [],
     parseMemo: (uri, o) => o["memo"] || "P2P Transaction",
     parsePeer: (uri, o) => o["peer"],
-    peerProtocol: "bip270"
+    getPeerProtocol: (uri, o) => "bip270"
   },
   {
     name: "bip272-noSvParam",
@@ -157,7 +157,7 @@ var schemes = [
     parseInputs: (uri, o) => [],
     parseMemo: (uri, o) => o["memo"] || "P2P Transaction",
     parsePeer: (uri, o) => o["peer"],
-    peerProtocol: "bip270"
+    getPeerProtocol: (uri, o) => "bip270"
   },
   {
     name: "bip21sv",
@@ -174,7 +174,7 @@ var schemes = [
       uri.searchParams["message"] ||
       "Payment to Address",
     parsePeer: (uri, o) => null,
-    peerProtocol: null
+    getPeerProtocol: (uri, o) => null
   },
   {
     name: "bip21",
@@ -191,7 +191,7 @@ var schemes = [
       uri.searchParams["message"] ||
       "Payment to Address",
     parsePeer: (uri, o) => null,
-    peerProtocol: null
+    getPeerProtocol: (uri, o) => null
   },
   {
     name: "bip72",
@@ -205,7 +205,7 @@ var schemes = [
     parseInputs: (uri, o) => [],
     parseMemo: (uri, o) => o["memo"] || "P2P Transaction",
     parsePeer: (uri, o) => o["peer"],
-    peerProtocol: "bip70"
+    getPeerProtocol: (uri, o) => "bip70"
   }
 ];
 
@@ -474,7 +474,7 @@ async function parse(bitcoinUriString, options = defaultOptions) {
     memo: await schema.parseMemo(bitcoinUri, options),
     isBSV: !isBtcProtocol,
     peer: await schema.parsePeer(bitcoinUri, options),
-    peerProtocol: schema.peerProtocol
+    peerProtocol: await schema.getPeerProtocol(bitcoinUri, options)
   };
 }
 
