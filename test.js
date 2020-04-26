@@ -43,15 +43,15 @@ async function testParsing(uri, expectedResult, done) {
     .catch(e => {
       console.log(
         "Test Output: \n---------------\n\n" +
-          logsForThisTest
-            .map(i =>
-              i
-                .split("\n")
-                .map(l => ">\t\t" + l)
-                .join("\n")
-            )
-            .join("\n") +
-          "\n\n---------------\n"
+        logsForThisTest
+          .map(i =>
+            i
+              .split("\n")
+              .map(l => ">\t\t" + l)
+              .join("\n")
+          )
+          .join("\n") +
+        "\n\n---------------\n"
       );
 
       var message = e + "\n\n URI: " + uri;
@@ -73,6 +73,7 @@ testData = {
     ],
     expected: {
       type: "address",
+      mainProtocol: "address",
       outputs: [
         {
           script: "76a9149d7cda4252e8f46b12fee2d14e2d731ac074330688ac",
@@ -94,6 +95,7 @@ testData = {
     ],
     expected: {
       type: "bip21sv",
+      mainProtocol: "bip21",
       outputs: [
         {
           script: "76a9149d7cda4252e8f46b12fee2d14e2d731ac074330688ac",
@@ -114,6 +116,7 @@ testData = {
     ],
     expected: {
       type: "bip21",
+      mainProtocol: "bip21",
       outputs: [
         {
           script: "76a9149d7cda4252e8f46b12fee2d14e2d731ac074330688ac",
@@ -131,6 +134,7 @@ testData = {
     uris: ["bitcoin:1FMif2XbHJx5L2x6QWYKyWEWPpxJC1ipXw"],
     expected: {
       type: "bip21",
+      mainProtocol: "bip21",
       outputs: [
         {
           script: "76a9149d7cda4252e8f46b12fee2d14e2d731ac074330688ac",
@@ -146,10 +150,12 @@ testData = {
   },
   "bip275-bip282": {
     uris: [
-      "bitcoin:?req-bip275&paymentUrl=https%3A%2F%2Fexample.com%2Fpayments&network=bitcoin&outputs=%5B%7B%22amount%22%3A1000000%2C%22script%22%3A%2276a914808a0e92d0d42b650f083dd223d556b410699d6f88ac%22%7D%5D&req-inputs=%5B%7B%22value%22%3A2557931%2C%22txid%22%3A%224d5fcc930d612a23090198a79a9e6f86b5297f480accdbb6f3b2a3a2535dc640%22%2C%22vout%22%3A0%2C%22scriptSig%22%3A%22546865207061796d656e742072656365697665722077696c6c207265706c61636520746869732077697468207468652061637475616c207369676e61747572652e%22%7D%5D"
+      "bitcoin:?req-bip275&paymentUrl=https%3A%2F%2Fexample.com%2Fpayments&network=bitcoin&outputs=%5B%7B%22amount%22%3A1000000%2C%22script%22%3A%2276a914808a0e92d0d42b650f083dd223d556b410699d6f88ac%22%7D%5D&req-inputs=%5B%7B%22value%22%3A2557931%2C%22txid%22%3A%224d5fcc930d612a23090198a79a9e6f86b5297f480accdbb6f3b2a3a2535dc640%22%2C%22vout%22%3A0%2C%22scriptSig%22%3A%22546865207061796d656e742072656365697665722077696c6c207265706c61636520746869732077697468207468652061637475616c207369676e61747572652e%22%7D%5D",
+      "pay:?req-bip275&paymentUrl=https%3A%2F%2Fexample.com%2Fpayments&network=bitcoin&outputs=%5B%7B%22amount%22%3A1000000%2C%22script%22%3A%2276a914808a0e92d0d42b650f083dd223d556b410699d6f88ac%22%7D%5D&req-inputs=%5B%7B%22value%22%3A2557931%2C%22txid%22%3A%224d5fcc930d612a23090198a79a9e6f86b5297f480accdbb6f3b2a3a2535dc640%22%2C%22vout%22%3A0%2C%22scriptSig%22%3A%22546865207061796d656e742072656365697665722077696c6c207265706c61636520746869732077697468207468652061637475616c207369676e61747572652e%22%7D%5D"
     ],
     expected: {
       type: "bip275-bip282",
+      mainProtocol: "bip282",
       outputs: [
         {
           script: "76a914808a0e92d0d42b650f083dd223d556b410699d6f88ac",
@@ -174,10 +180,12 @@ testData = {
   },
   bip275: {
     uris: [
-      "bitcoin:?req-bip275&paymentUrl=https%3A%2F%2Fexample.com%2Fpayments&network=bitcoin&outputs=%5B%7B%22amount%22%3A1000000%2C%22script%22%3A%2276a914808a0e92d0d42b650f083dd223d556b410699d6f88ac%22%7D%2C%7B%22amount%22%3A1000000%2C%22script%22%3A%2276a914eb280a7c70784b5136119cb889e024d22437ed4c88ac%22%7D%5D"
+      "bitcoin:?req-bip275&paymentUrl=https%3A%2F%2Fexample.com%2Fpayments&network=bitcoin&outputs=%5B%7B%22amount%22%3A1000000%2C%22script%22%3A%2276a914808a0e92d0d42b650f083dd223d556b410699d6f88ac%22%7D%2C%7B%22amount%22%3A1000000%2C%22script%22%3A%2276a914eb280a7c70784b5136119cb889e024d22437ed4c88ac%22%7D%5D",
+      "pay:?req-bip275&paymentUrl=https%3A%2F%2Fexample.com%2Fpayments&network=bitcoin&outputs=%5B%7B%22amount%22%3A1000000%2C%22script%22%3A%2276a914808a0e92d0d42b650f083dd223d556b410699d6f88ac%22%7D%2C%7B%22amount%22%3A1000000%2C%22script%22%3A%2276a914eb280a7c70784b5136119cb889e024d22437ed4c88ac%22%7D%5D"
     ],
     expected: {
       type: "bip275",
+      mainProtocol: "bip275",
       outputs: [
         {
           satoshis: 1000000,
@@ -198,12 +206,17 @@ testData = {
   bip272strict: {
     uris: [
       "bitcoin:?sv=&req-bip272=&r=" +
-        encodeURIComponent(
-          "https://api.bitsent.net/payment/address/1Dmq5JKtWu4yZRLWBBKh3V2koeemNTYXAY/500000"
-        )
+      encodeURIComponent(
+        "https://api.bitsent.net/payment/address/1Dmq5JKtWu4yZRLWBBKh3V2koeemNTYXAY/500000"
+      ),
+      "pay:?sv=&req-bip272=&r=" +
+      encodeURIComponent(
+        "https://api.bitsent.net/payment/address/1Dmq5JKtWu4yZRLWBBKh3V2koeemNTYXAY/500000"
+      )
     ],
     expected: {
       type: "bip272strict",
+      mainProtocol: "bip272",
       outputs: [
         {
           satoshis: 500000,
@@ -220,12 +233,17 @@ testData = {
   bip272: {
     uris: [
       "bitcoin:?sv=&r=" +
-        encodeURIComponent(
-          "https://api.bitsent.net/payment/address/1Dmq5JKtWu4yZRLWBBKh3V2koeemNTYXAY/500000"
-        )
+      encodeURIComponent(
+        "https://api.bitsent.net/payment/address/1Dmq5JKtWu4yZRLWBBKh3V2koeemNTYXAY/500000"
+      ),
+      "pay:?sv=&r=" +
+      encodeURIComponent(
+        "https://api.bitsent.net/payment/address/1Dmq5JKtWu4yZRLWBBKh3V2koeemNTYXAY/500000"
+      )
     ],
     expected: {
       type: "bip272",
+      mainProtocol: "bip272",
       outputs: [
         {
           satoshis: 500000,
@@ -239,10 +257,38 @@ testData = {
       peerProtocol: "bip270"
     }
   },
+  "bip272-noSvParam": {
+    uris: [
+      "bitcoin:?&r=" +
+      encodeURIComponent(
+        "https://api.bitsent.net/payment/address/1Dmq5JKtWu4yZRLWBBKh3V2koeemNTYXAY/500000"
+      ),
+      "pay:?&r=" +
+      encodeURIComponent(
+        "https://api.bitsent.net/payment/address/1Dmq5JKtWu4yZRLWBBKh3V2koeemNTYXAY/500000"
+      )
+    ],
+    expected: {
+      type: "bip272-noSvParam",
+      mainProtocol: "bip272",
+      outputs: [
+        {
+          satoshis: 500000,
+          script: "76a9148c1bf1254637c3b521ce47f4b63636d11244a0bd88ac"
+        }
+      ],
+      inputs: [],
+      memo: "Pay to 1Dmq5JKtWu4yZRLWBBKh3V2koeemNTYXAY",
+      isBSV: false,
+      peer: "https://api.bitsent.net/payment/pay",
+      peerProtocol: "bip270"
+    }
+  },
   paymail: {
     uris: ["payto:aleks@api.bitsent.net?purpose=PayMe&amount=1234567"],
     expected: {
       type: "paymail",
+      mainProtocol: "paymail",
       outputs: [
         {
           satoshis: 1234567,
@@ -263,6 +309,7 @@ testData = {
     ],
     expected: {
       type: "paymail",
+      mainProtocol: "paymail",
       outputs: [
         {
           satoshis: NaN,
@@ -278,23 +325,39 @@ testData = {
   }
 };
 
-Object.keys(testData).forEach((testName) => {
-  var uris = testData[testName].uris;
-  var expected = testData[testName].expected;
-  for (let i = 0; i < uris.length; i++)
-    if(typeof test !== 'undefined')
-      test(testName + " #" + i, function(done) {
+if (typeof test !== 'undefined')
+  Object.keys(testData).forEach((testName) => {
+    var uris = testData[testName].uris;
+    var expected = testData[testName].expected;
+
+    for (let i = 0; i < uris.length; i++)
+      test(testName + " #" + i, function (done) {
         testParsing(uris[i], expected, done);
       });
-    else
-      printMarkdownExample(testName + " #" + i, uris[i]);
-});
+  });
+else {
+  console.log("# Examples:");
+  console.log("(Autogenerate examples with ```node test.js > examples.md``` )");
+  console.log("\n");
+  Object.keys(testData).forEach((testName) => {
+    var uris = testData[testName].uris;
+    printMarkdownExample(testName, uris);
+  });
+}
 
 
-function printMarkdownExample(testName, uri){
+function printMarkdownExample(testName, uris) {
   console.log("```js");
-  console.log("//// " + testName + " ////")
-  console.log('var txRequest = await bitUriParser.parse("'+uri+'")');
-  console.log("```");
+  console.log("//// " + testName + " ////\n")
+
+  uris.forEach((uri, i) => {
+    console.log(`var txRequest${i?i:""} = await bitUriParser.parse(`);
+    var parts = [];
+    for (let i = 0; i < uri.length / 80 + 1; i++)
+      parts.push(uri.substr(i * 80, 80));
+    console.log('    "' + parts.filter(i => i).join('"\n    + "') + '"');
+    console.log(');')
+  });
+  console.log("```\n");
 }
 

@@ -7,6 +7,7 @@ var bsv = require("bsv");
 var schemes = [
   {
     name: "privkey",
+    mainProtocol: "privkey",
     checkhSchema: s => true,
     checkPath: p => /[0-9A-Fa-f]{64}/.test(p),
     checkParams: p => Object.keys(p).length === 0,
@@ -20,6 +21,7 @@ var schemes = [
   },
   {
     name: "privkey-wif",
+    mainProtocol: "privkey",
     checkhSchema: s => true,
     checkPath: p => /[a-km-zA-HJ-NP-Z1-9]{51,52}/.test(p),
     checkParams: p => Object.keys(p).length === 0,
@@ -33,6 +35,7 @@ var schemes = [
   },
   {
     name: "address",
+    mainProtocol: "address",
     checkhSchema: s => s === "",
     checkPath: p => /^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$/.test(p),
     checkParams: p => Object.keys(p).length === 0,
@@ -49,6 +52,7 @@ var schemes = [
   },
   {
     name: "paymail",
+    mainProtocol: "paymail",
     checkhSchema: s => s === "payto:",
     checkPath: p => {
       var regex = /^([\w\.\-]+)@([\w\.\-]+)((\.(\w){2,3})+)$/;
@@ -66,7 +70,8 @@ var schemes = [
   },
   {
     name: "bip275-bip282",
-    checkhSchema: s => s === "bitcoin:",
+    mainProtocol: "bip282",
+    checkhSchema: s => s === "bitcoin:" || s === "pay:",
     checkPath: p => p === "",
     checkParams: p =>
       ["req-inputs", "req-bip275", "paymentUrl", "network", "outputs"].every(
@@ -82,7 +87,8 @@ var schemes = [
   },
   {
     name: "bip272-bip282",
-    checkhSchema: s => s === "bitcoin:",
+    mainProtocol: "bip282",
+    checkhSchema: s => s === "bitcoin:" || s === "pay:",
     checkPath: p => p === "",
     checkParams: p =>
       ["req-inputs", "req-bip272", "r"].every(i => typeof p[i] === "string"),
@@ -96,7 +102,8 @@ var schemes = [
   },
   {
     name: "bip275",
-    checkhSchema: s => s === "bitcoin:",
+    mainProtocol: "bip275",
+    checkhSchema: s => s === "bitcoin:" || s === "pay:",
     checkPath: p => p === "",
     checkParams: p =>
       ["req-bip275", "paymentUrl", "network", "outputs"].every(
@@ -112,7 +119,8 @@ var schemes = [
   },
   {
     name: "bip272strict",
-    checkhSchema: s => s === "bitcoin:",
+    mainProtocol: "bip272",
+    checkhSchema: s => s === "bitcoin:" || s === "pay:",
     checkPath: p => p === "",
     checkParams: p => ["req-bip272", "r"].every(i => typeof p[i] === "string"),
     knownRequiredParams: ["req-bip272"],
@@ -125,7 +133,8 @@ var schemes = [
   },
   {
     name: "bip272",
-    checkhSchema: s => s === "bitcoin:",
+    mainProtocol: "bip272",
+    checkhSchema: s => s === "bitcoin:" || s === "pay:",
     checkPath: p => p === "",
     checkParams: p => ["sv", "r"].every(i => typeof p[i] === "string"),
     knownRequiredParams: [],
@@ -137,7 +146,22 @@ var schemes = [
     peerProtocol: "bip270"
   },
   {
+    name: "bip272-noSvParam",
+    mainProtocol: "bip272",
+    checkhSchema: s => s === "bitcoin:" || s === "pay:",
+    checkPath: p => p === "",
+    checkParams: p => ["r"].every(i => typeof p[i] === "string"),
+    knownRequiredParams: [],
+
+    parseOutputs: (uri, o) => create_BIP272_Outputs(uri, o),
+    parseInputs: (uri, o) => [],
+    parseMemo: (uri, o) => o["memo"] || "P2P Transaction",
+    parsePeer: (uri, o) => o["peer"],
+    peerProtocol: "bip270"
+  },
+  {
     name: "bip21sv",
+    mainProtocol: "bip21",
     checkhSchema: s => s === "bitcoin:" || s === "",
     checkPath: p => /^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$/.test(p),
     checkParams: p => typeof p["sv"] === "string",
@@ -154,6 +178,7 @@ var schemes = [
   },
   {
     name: "bip21",
+    mainProtocol: "bip21",
     checkhSchema: s => s === "bitcoin:" || s === "",
     checkPath: p => /^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$/.test(p),
     checkParams: p => true,
@@ -170,6 +195,7 @@ var schemes = [
   },
   {
     name: "bip72",
+    mainProtocol: "bip72",
     checkhSchema: s => s === "bitcoin:",
     checkPath: p => p === "",
     checkParams: p => typeof p["r"] === "string",
@@ -431,7 +457,7 @@ async function parse(bitcoinUriString, options = defaultOptions) {
   var uriType = findUriType(bitcoinUri, options);
 
   var isBtcProtocol =
-    uriType === "address" || uriType === "bip21" || uriType === "bip72";
+    ["address", "bip21", "bip72", "bip272-noSvParam"].some(i=> uriType === i);
   if (isBtcProtocol)
     console.warn(
       "Warning: This might be a BTC request. (type=" + uriType + ")"
@@ -442,6 +468,7 @@ async function parse(bitcoinUriString, options = defaultOptions) {
 
   return {
     type: uriType,
+    mainProtocol: schema.mainProtocol,
     outputs: await schema.parseOutputs(bitcoinUri, options),
     inputs: await schema.parseInputs(bitcoinUri, options),
     memo: await schema.parseMemo(bitcoinUri, options),
