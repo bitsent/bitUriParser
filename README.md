@@ -40,4 +40,4 @@ A parser for bitcoin URI strings
 
 # EXAMPLES
 
-## See [examples.md](/examples.md)
+## See [examples.md](https://github.com/bitsent/bitUriParser/blob/master/examples.md)
