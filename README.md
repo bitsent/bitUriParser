@@ -1,15 +1,35 @@
 # bitUriParser
 A parser for bitcoin URI strings
 
+### Supports formats like PrivateKey, Address, Paymail, Bip21, Bip272, Bip275, Bip282
+
 ### Released under "OPEN BSV-SPECIFIC LICENSE"
 
-# TODO
 
-- The library doesn't support **BIP72 links**. It will treat all BIP72 links as BIP272 links.
+# Install
+
+#### NodeJS
+```
+    npm i --save bituriparser
+```
+
+#### Browser
+```
+    // will be available later...
+```
+
+# Use
+
+``` js
+    var bitUriParser = require("bituriparser");
+
+    var bitUri = "bitcoin:1FMif2XbHJx5L2x6QWYKyWEWPpxJC1ipXw?sv=&amount=0.00123456&label=PayMe";
+    var txRequestObject = await bitUriParser.parse(bitUri);
+```
 
 # Output Format
 
-```js
+```json
 {
     type: "string - URI type",
     outputs: [{
@@ -37,6 +57,9 @@ A parser for bitcoin URI strings
 }
 ```
 
+# Note
+
+- The library doesn't support **BIP72 links**. It will treat all BIP72 links as BIP272 links.
 
 # EXAMPLES
 
