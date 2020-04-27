@@ -52,9 +52,9 @@ var schemes = [
   {
     name: "paymail",
     mainProtocol: "paymail",
-    checkhSchema: s => s === "payto:",
+    checkhSchema: s => s === "payto:" || s === "",
     checkPath: p => {
-      var regex = /^([\w\.\-]+)@([\w\.\-]+)((\.(\w){2,3})+)$/;
+      var regex = /^([\w\.\-]+)@([\w\.\-]+)((\.(\w){2,8})+)$/;
       return regex.test(p) || regex.test(decodeURIComponent(p));
     },
     checkParams: p => true,
@@ -238,7 +238,12 @@ async function check_Paymail_Peer(uri, o) {
   var atIndex = paymail.indexOf("@");
   var alias = paymail.substr(0, atIndex);
   var host = paymail.substr(atIndex + 1);
-  var capabilitiesURL = `https://${host}/.well-known/bsvalias`;
+  var dnsSrvQuery = await get(`https://dns.google.com/resolve?name=_bsvalias._tcp.${host}&type=SRV&cd=0`, o);
+  if (dnsSrvQuery.Status !== 0) throw new Error("No SRV record found for " + host);
+  var data = dnsSrvQuery.Answer[0].data;
+  var [ _, _, paymailPort, paymailHost ] = data.split(' ');
+  paymailHost = paymailHost.substr(0, paymailHost.length-1); // remove the '.'
+  var capabilitiesURL = `https://${paymailHost}:${paymailPort}/.well-known/bsvalias`;
   var req = await get(capabilitiesURL, o);
   if(!req.capabilities)
     throw new Error(`Failed to get Paymail Provider Capabilities of '${host}'`
@@ -469,9 +474,7 @@ async function parse(bitcoinUriString, options = defaultOptions) {
   var isBtcProtocol =
     ["address", "bip21", "bip72", "bip272-noSvParam"].some(i=> uriType === i);
   if (isBtcProtocol)
-    console.warn(
-      "Warning: This might be a BTC request. (type=" + uriType + ")"
-    );
+    console.warn("Warning: This might be a BTC request. (type=" + uriType + ")");
 
   var schema = schemes.filter(s => s.name === uriType)[0];
   if (!schema) throw new Error(uriType);

@@ -126,15 +126,31 @@ var txRequest1 = await bitUriParser.parse(
 //// paymail ////
 
 var txRequest = await bitUriParser.parse(
-    "payto:aleks@api.bitsent.net?purpose=PayMe&amount=1234567"
+    "payto:aleks@bitsent.net?purpose=PayMe&amount=1234567"
 );
 ```
 
 ```js
-//// paymail-P2P ////
+//// paymail-P2P-handcash ////
 
 var txRequest = await bitUriParser.parse(
-    "payto:aleks@moneybutton.com?purpose=PayMe&amount=1234567"
+    "payto:bitcoinsofia@handcash.io?purpose=PayMe&amount=1234567"
+);
+```
+
+```js
+//// paymail-P2P-moneybutton ////
+
+var txRequest = await bitUriParser.parse(
+    "payto:bitcoinsofia@moneybutton.com?purpose=PayMe&amount=1234567"
+);
+```
+
+```js
+//// paymail-simplycash ////
+
+var txRequest = await bitUriParser.parse(
+    "payto:aleks@simply.cash?purpose=PayMe&amount=1234567"
 );
 ```
 
@@ -142,9 +158,20 @@ var txRequest = await bitUriParser.parse(
 //// paymail-noParams ////
 
 var txRequest = await bitUriParser.parse(
-    "payto:aleks%40api.bitsent.net"
+    "payto:aleks%40bitsent.net"
 );
 var txRequest1 = await bitUriParser.parse(
-    "payto:aleks@api.bitsent.net"
+    "payto:aleks@bitsent.net"
+);
+```
+
+```js
+//// paymail-noScheme ////
+
+var txRequest = await bitUriParser.parse(
+    "aleks%40bitsent.net"
+);
+var txRequest1 = await bitUriParser.parse(
+    "aleks@bitsent.net"
 );
 ```

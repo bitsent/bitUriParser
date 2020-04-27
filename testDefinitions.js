@@ -13,7 +13,7 @@ async function testParsing(uri, expectedResult, done) {
     // console.log(uri);
     paymentRequest = await bitUriParser.parse(
       uri,
-      (options = { debugLog: i => logsForThisTest.push(i) })
+      options = { debugLog: i => logsForThisTest.push(i.toString()) }
     );
 
     [ "type", "memo", "isBSV", "peer", "peerProtocol" ].forEach(field => {
@@ -278,7 +278,7 @@ testData = {
     }
   },
   paymail: {
-    uris: ["payto:aleks@api.bitsent.net?purpose=PayMe&amount=1234567"],
+    uris: ["payto:aleks@bitsent.net?purpose=PayMe&amount=1234567"],
     expected: {
       type: "paymail",
       mainProtocol: "paymail",
@@ -295,9 +295,9 @@ testData = {
       peerProtocol: null
     }
   },
-  "paymail-P2P": {
+  "paymail-P2P-handcash": {
     uris: [
-      "payto:aleks@moneybutton.com?purpose=PayMe&amount=1234567",
+      "payto:bitcoinsofia@handcash.io?purpose=PayMe&amount=1234567",
     ],
     expected: {
       type: "paymail",
@@ -311,14 +311,54 @@ testData = {
       inputs: [],
       memo: "PayMe",
       isBSV: true,
-      peer: "https://www.moneybutton.com/api/v1/bsvalias/p2p-payment-destination/aleks@moneybutton.com",
+      peer: "https://handcash-cloud-production.herokuapp.com/api/bsvalias/p2p-payment-destination/bitcoinsofia@handcash.io",
       peerProtocol: "paymail"
+    }
+  },
+  "paymail-P2P-moneybutton": {
+    uris: [
+      "payto:bitcoinsofia@moneybutton.com?purpose=PayMe&amount=1234567",
+    ],
+    expected: {
+      type: "paymail",
+      mainProtocol: "paymail",
+      outputs: [
+        {
+          satoshis: 1234567,
+          script: SKIP_CHECK
+        }
+      ],
+      inputs: [],
+      memo: "PayMe",
+      isBSV: true,
+      peer: "https://www.moneybutton.com/api/v1/bsvalias/p2p-payment-destination/bitcoinsofia@moneybutton.com",
+      peerProtocol: "paymail"
+    }
+  },
+  "paymail-simplycash": {
+    uris: [
+      "payto:aleks@simply.cash?purpose=PayMe&amount=1234567",
+    ],
+    expected: {
+      type: "paymail",
+      mainProtocol: "paymail",
+      outputs: [
+        {
+          satoshis: 1234567,
+          script: SKIP_CHECK
+        }
+      ],
+      inputs: [],
+      memo: "PayMe",
+      isBSV: true,
+      peer: null,
+      peerProtocol: null
     }
   },
   "paymail-noParams": {
     uris: [
-      "payto:" + encodeURIComponent("aleks@api.bitsent.net"),
-      "payto:aleks@api.bitsent.net"
+      "payto:" + encodeURIComponent("aleks@bitsent.net"),
+      "payto:aleks@bitsent.net"
     ],
     expected: {
       type: "paymail",
@@ -330,7 +370,28 @@ testData = {
         }
       ],
       inputs: [],
-      memo: "Send to aleks@api.bitsent.net",
+      memo: "Send to aleks@bitsent.net",
+      isBSV: true,
+      peer: null,
+      peerProtocol: null
+    }
+  },
+  "paymail-noScheme": {
+    uris: [
+      encodeURIComponent("aleks@bitsent.net"),
+      "aleks@bitsent.net"
+    ],
+    expected: {
+      type: "paymail",
+      mainProtocol: "paymail",
+      outputs: [
+        {
+          satoshis: NaN,
+          script: "76a9148c1bf1254637c3b521ce47f4b63636d11244a0bd88ac"
+        }
+      ],
+      inputs: [],
+      memo: "Send to aleks@bitsent.net",
       isBSV: true,
       peer: null,
       peerProtocol: null
@@ -392,12 +453,11 @@ function generateMarkdownExamples(testData) {
   console.log("Generated examples.md");
 }
 
-if (typeof test === 'undefined') {
-  console.log("Calling 'Test.js' directly generates the tests, but doesn't run them.");
-  console.log("To run the generated tests, call 'jest'.");
-  generateTestCalls(testData);
-  generateMarkdownExamples(testData);
-}
+
+console.log("Generating tests and examples from 'testDefinitions.js'");
+generateTestCalls(testData);
+generateMarkdownExamples(testData);
+
 
 module.exports = {
   testData, testParsing

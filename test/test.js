@@ -99,9 +99,21 @@ test("paymail_#1", function (done) {
     testParsing(td.uris[0], td.expected, done);
 });
 
-// paymail-P2P
-test("paymail-P2P_#1", function (done) {
-    var td = testData["paymail-P2P"];
+// paymail-P2P-handcash
+test("paymail-P2P-handcash_#1", function (done) {
+    var td = testData["paymail-P2P-handcash"];
+    testParsing(td.uris[0], td.expected, done);
+});
+
+// paymail-P2P-moneybutton
+test("paymail-P2P-moneybutton_#1", function (done) {
+    var td = testData["paymail-P2P-moneybutton"];
+    testParsing(td.uris[0], td.expected, done);
+});
+
+// paymail-simplycash
+test("paymail-simplycash_#1", function (done) {
+    var td = testData["paymail-simplycash"];
     testParsing(td.uris[0], td.expected, done);
 });
 
@@ -112,5 +124,15 @@ test("paymail-noParams_#1", function (done) {
 });
 test("paymail-noParams_#2", function (done) {
     var td = testData["paymail-noParams"];
+    testParsing(td.uris[1], td.expected, done);
+});
+
+// paymail-noScheme
+test("paymail-noScheme_#1", function (done) {
+    var td = testData["paymail-noScheme"];
+    testParsing(td.uris[0], td.expected, done);
+});
+test("paymail-noScheme_#2", function (done) {
+    var td = testData["paymail-noScheme"];
     testParsing(td.uris[1], td.expected, done);
 });
