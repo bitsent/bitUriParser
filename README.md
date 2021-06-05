@@ -75,6 +75,7 @@ Alternatively, you can also provide your own function for resolving paymails:
     memo: "Human Readable Message",
     isBSV: true, // If false, warn user about BTC protocol
     peer: "empty if not P2P protocol - peer if the payment should be sent to peer",
+    peerData: "A value of unspecified type to be included with the P2P payment (like 'merchantData' for BIP270)",
     peerProtocol: "empty if not P2P protocol - otherwise the name of the protocol, like 'bip270'"
 }
 ```

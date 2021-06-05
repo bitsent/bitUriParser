@@ -5,18 +5,20 @@ const SKIP_CHECK = "SKIP_CHECK";
 
 // To make the tests run - update the BIP270 URL and update the Expected JSON bellow it
 const BIP270_PAYMENT_REQUEST_URL_PART =
-  "https://api.bitsent.net/payment/address/1Dmq5JKtWu4yZRLWBBKh3V2koeemNTYXAY/500000";
+  "https://staging.centi.ch/payment/api/payment_request/2662e521-ff52-418a-b7e5-c98aefd7295a";
 const BIP270_PAYMENT_REQUEST_EXPECTED_JSON = {
-  network: "bitcoin",
+  network: "bitcoin-sv",
   outputs: [
     {
-      amount: 500000,
-      script: SKIP_CHECK,
+      amount: 330425,
+      script: "76a9140ad54ef7e2f0fdf3f46c838337f9173f4926aac888ac",
     },
   ],
-  creationTimestamp: 1584288774,
-  memo: "Pay to 1Dmq5JKtWu4yZRLWBBKh3V2koeemNTYXAY",
-  paymentUrl: "https://api.bitsent.net/payment/pay",
+  paymentUrl:
+    "https://staging.centi.ch/payment/api/pay/2662e521-ff52-418a-b7e5-c98aefd7295a",
+  creationTimestamp: 1622902443,
+  alternativeOutputs: null,
+  expirationTimestamp: 1622902803,
 };
 
 async function testParsing(uri, expectedResult, done) {
@@ -229,6 +231,7 @@ testData = {
       memo: BIP270_PAYMENT_REQUEST_EXPECTED_JSON.memo || "P2P Transaction",
       isBSV: true,
       peer: BIP270_PAYMENT_REQUEST_EXPECTED_JSON.paymentUrl,
+      peerData: BIP270_PAYMENT_REQUEST_EXPECTED_JSON.merchantData,
       peerProtocol: "bip270",
     },
   },
@@ -248,6 +251,7 @@ testData = {
       memo: BIP270_PAYMENT_REQUEST_EXPECTED_JSON.memo || "P2P Transaction",
       isBSV: true,
       peer: BIP270_PAYMENT_REQUEST_EXPECTED_JSON.paymentUrl,
+      peerData: BIP270_PAYMENT_REQUEST_EXPECTED_JSON.merchantData,
       peerProtocol: "bip270",
     },
   },
@@ -267,6 +271,7 @@ testData = {
       memo: BIP270_PAYMENT_REQUEST_EXPECTED_JSON.memo || "P2P Transaction",
       isBSV: false,
       peer: BIP270_PAYMENT_REQUEST_EXPECTED_JSON.paymentUrl,
+      peerData: BIP270_PAYMENT_REQUEST_EXPECTED_JSON.merchantData,
       peerProtocol: "bip270",
     },
   },

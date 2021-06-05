@@ -29372,6 +29372,7 @@ var schemes = [
       create_PrivateKey_Inputs(uri, o, bsv.PrivateKey.fromHex(uri.host)),
     parseMemo: (uri, o) => "Sweep Key",
     parsePeer: (uri, o) => null,
+    parsePeerData: (uri, o) => null,
     getPeerProtocol: (uri, o) => null,
   },
   {
@@ -29387,6 +29388,7 @@ var schemes = [
       create_PrivateKey_Inputs(uri, o, bsv.PrivateKey.fromWIF(uri.host)),
     parseMemo: (uri, o) => "Sweep Key",
     parsePeer: (uri, o) => null,
+    parsePeerData: (uri, o) => null,
     getPeerProtocol: (uri, o) => null,
   },
   {
@@ -29404,6 +29406,7 @@ var schemes = [
       uri.searchParams["message"] ||
       "Payment to Address",
     parsePeer: (uri, o) => null,
+    parsePeerData: (uri, o) => null,
     getPeerProtocol: (uri, o) => null,
   },
   {
@@ -29422,6 +29425,7 @@ var schemes = [
     parseMemo: (uri, o) =>
       uri.searchParams["purpose"] || "Send to " + decodeURIComponent(uri.host),
     parsePeer: (uri, o) => check_Paymail_Peer(uri, o),
+    parsePeerData: (uri, o) => null,
     getPeerProtocol: (uri, o) => (o["peer"] ? "paymail" : null),
   },
   {
@@ -29439,6 +29443,7 @@ var schemes = [
     parseInputs: (uri, o) => create_BIP275_BIP282_Inputs(uri, o),
     parseMemo: (uri, o) => uri.searchParams["memo"] || "P2P Transaction",
     parsePeer: (uri, o) => uri.searchParams["paymentUrl"],
+    parsePeerData: (uri, o) => uri.searchParams["merchantData"],
     getPeerProtocol: (uri, o) => "bip270",
   },
   {
@@ -29454,6 +29459,7 @@ var schemes = [
     parseInputs: (uri, o) => create_BIP272_BIP282_Inputs(uri, o),
     parseMemo: (uri, o) => o["memo"] || "P2P Transaction",
     parsePeer: (uri, o) => o["peer"],
+    parsePeerData: (uri, o) => o["peerData"],
     getPeerProtocol: (uri, o) => "bip270",
   },
   {
@@ -29471,6 +29477,7 @@ var schemes = [
     parseInputs: (uri, o) => [],
     parseMemo: (uri, o) => uri.searchParams["memo"] || "P2P Transaction",
     parsePeer: (uri, o) => uri.searchParams["paymentUrl"],
+    parsePeerData: (uri, o) => uri.searchParams["merchantData"],
     getPeerProtocol: (uri, o) => "bip270",
   },
   {
@@ -29486,6 +29493,7 @@ var schemes = [
     parseInputs: (uri, o) => [],
     parseMemo: (uri, o) => o["memo"] || "P2P Transaction",
     parsePeer: (uri, o) => o["peer"],
+    parsePeerData: (uri, o) => o["peerData"],
     getPeerProtocol: (uri, o) => "bip270",
   },
   {
@@ -29500,6 +29508,7 @@ var schemes = [
     parseInputs: (uri, o) => [],
     parseMemo: (uri, o) => o["memo"] || "P2P Transaction",
     parsePeer: (uri, o) => o["peer"],
+    parsePeerData: (uri, o) => o["peerData"],
     getPeerProtocol: (uri, o) => "bip270",
   },
   {
@@ -29514,6 +29523,7 @@ var schemes = [
     parseInputs: (uri, o) => [],
     parseMemo: (uri, o) => o["memo"] || "P2P Transaction",
     parsePeer: (uri, o) => o["peer"],
+    parsePeerData: (uri, o) => o["peerData"],
     getPeerProtocol: (uri, o) => "bip270",
   },
   {
@@ -29531,6 +29541,7 @@ var schemes = [
       uri.searchParams["message"] ||
       "Payment to Address",
     parsePeer: (uri, o) => null,
+    parsePeerData: (uri, o) => null,
     getPeerProtocol: (uri, o) => null,
   },
   {
@@ -29548,6 +29559,7 @@ var schemes = [
       uri.searchParams["message"] ||
       "Payment to Address",
     parsePeer: (uri, o) => null,
+    parsePeerData: (uri, o) => null,
     getPeerProtocol: (uri, o) => null,
   },
   {
@@ -29562,6 +29574,7 @@ var schemes = [
     parseInputs: (uri, o) => [],
     parseMemo: (uri, o) => o["memo"] || "P2P Transaction",
     parsePeer: (uri, o) => o["peer"],
+    parsePeerData: (uri, o) => null,
     getPeerProtocol: (uri, o) => "bip70",
   },
 ];
@@ -29591,13 +29604,20 @@ async function create_PrivateKey_Inputs(uri, o, key) {
 async function create_Paymail_Output(uri, o) {
   const satoshis = parseInt(uri.searchParams["amount"]);
   return {
-    script: await o.paymailResolverFunction(decodeURIComponent(uri.host), satoshis || 100000, o),
+    script: await o.paymailResolverFunction(
+      decodeURIComponent(uri.host),
+      satoshis || 100000,
+      o
+    ),
     satoshis: satoshis,
   };
 }
 
 async function check_Paymail_Peer(uri, o) {
-  const peerUrlString = await o.paymailPeerDnsResolverFunction(decodeURIComponent(uri.host), o);
+  const peerUrlString = await o.paymailPeerDnsResolverFunction(
+    decodeURIComponent(uri.host),
+    o
+  );
   if (peerUrlString) {
     o["peer"] = peerUrlString;
     return peerUrlString;
@@ -29631,6 +29651,7 @@ async function create_BIP272_Outputs(uri, o) {
 
   o["memo"] = req["memo"];
   o["peer"] = req["paymentUrl"];
+  o["peerData"] = req["merchantData"];
   o["req-inputs"] = req["req-inputs"];
 
   return req.outputs.map((o) => {
@@ -29742,9 +29763,9 @@ function findUriType(bitcoinUri, options) {
 
 async function get(uri, o) {
   o.debugLog(`GETTING ${uri}`);
-  var res = await fetch(uri).then(r=>r.json());
-  o.debugLog(`GET ${uri} ===> ${JSON.stringify(res.data)}`);
-  return res.data;
+  var res = await fetch(uri).then((r) => r.json());
+  o.debugLog(`GET ${uri} ===> ${JSON.stringify(res)}`);
+  return res;
 }
 
 async function checkUtxosOfAddress(address, o) {
@@ -29752,7 +29773,6 @@ async function checkUtxosOfAddress(address, o) {
     "https://api.mattercloud.net/api/v3/main/address/" + address + "/utxo";
   return await get(url, o);
 }
-
 
 function getUriObject(uriString, options) {
   var i1 = uriString.indexOf(":");
@@ -29790,12 +29810,16 @@ defaultOptions = {
   },
   checkUtxosOfAddressFunction: checkUtxosOfAddress,
   paymailResolverFunction: (paymail, satoshis, o) => {
-    throw new Error("bitUriParser requires you to set 'options.paymailResolverFunction'" 
-       + " to a function like : function(paymail, satoshis, optionsObject) { /* RETURNS THE OUTPUT SCRIPT OF THE PAYMAIL IN HEX FORMAT */ }");
+    throw new Error(
+      "bitUriParser requires you to set 'options.paymailResolverFunction'" +
+        " to a function like : function(paymail, satoshis, optionsObject) { /* RETURNS THE OUTPUT SCRIPT OF THE PAYMAIL IN HEX FORMAT */ }"
+    );
   },
-  paymailPeerDnsResolverFunction: (paymail, o) => { 
-    throw new Error("bitUriParser requires you to set 'options.paymailPeerDnsResolverFunction'" 
-       + " to a function like : function(paymail, optionsObject) { /* RETURNS THE P2P ENDPOINT FOR PUSHING TRANSACTIONS (OR UNDEFINED IF NOT SUPPORTED) */ }");
+  paymailPeerDnsResolverFunction: (paymail, o) => {
+    throw new Error(
+      "bitUriParser requires you to set 'options.paymailPeerDnsResolverFunction'" +
+        " to a function like : function(paymail, optionsObject) { /* RETURNS THE P2P ENDPOINT FOR PUSHING TRANSACTIONS (OR UNDEFINED IF NOT SUPPORTED) */ }"
+    );
   },
 };
 
@@ -29823,6 +29847,7 @@ async function parse(bitcoinUriString, options = defaultOptions) {
   var inputs = await schema.parseInputs(bitcoinUri, options);
   var memo = await schema.parseMemo(bitcoinUri, options);
   var peer = await schema.parsePeer(bitcoinUri, options);
+  var peerData = await schema.parsePeerData(bitcoinUri, options);
   var peerProtocol = await schema.getPeerProtocol(bitcoinUri, options);
 
   return {
@@ -29834,6 +29859,7 @@ async function parse(bitcoinUriString, options = defaultOptions) {
     memo,
     isBSV: !isBtcProtocol,
     peer,
+    peerData,
     peerProtocol,
   };
 }

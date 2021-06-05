@@ -87,12 +87,12 @@ var txRequest1 = await bitUriParser.parse(
 //// bip272strict ////
 
 var txRequest = await bitUriParser.parse(
-    "bitcoin:?sv=&req-bip272=&r=https%3A%2F%2Fapi.bitsent.net%2Fpayment%2Faddress%2F1"
-    + "Dmq5JKtWu4yZRLWBBKh3V2koeemNTYXAY%2F500000"
+    "bitcoin:?sv=&req-bip272=&r=https%3A%2F%2Fstaging.centi.ch%2Fpayment%2Fapi%2Fpaym"
+    + "ent_request%2F2662e521-ff52-418a-b7e5-c98aefd7295a"
 );
 var txRequest1 = await bitUriParser.parse(
-    "pay:?sv=&req-bip272=&r=https%3A%2F%2Fapi.bitsent.net%2Fpayment%2Faddress%2F1Dmq5"
-    + "JKtWu4yZRLWBBKh3V2koeemNTYXAY%2F500000"
+    "pay:?sv=&req-bip272=&r=https%3A%2F%2Fstaging.centi.ch%2Fpayment%2Fapi%2Fpayment_"
+    + "request%2F2662e521-ff52-418a-b7e5-c98aefd7295a"
 );
 ```
 
@@ -100,12 +100,12 @@ var txRequest1 = await bitUriParser.parse(
 //// bip272 ////
 
 var txRequest = await bitUriParser.parse(
-    "bitcoin:?sv=&r=https%3A%2F%2Fapi.bitsent.net%2Fpayment%2Faddress%2F1Dmq5JKtWu4yZ"
-    + "RLWBBKh3V2koeemNTYXAY%2F500000"
+    "bitcoin:?sv=&r=https%3A%2F%2Fstaging.centi.ch%2Fpayment%2Fapi%2Fpayment_request%"
+    + "2F2662e521-ff52-418a-b7e5-c98aefd7295a"
 );
 var txRequest1 = await bitUriParser.parse(
-    "pay:?sv=&r=https%3A%2F%2Fapi.bitsent.net%2Fpayment%2Faddress%2F1Dmq5JKtWu4yZRLWB"
-    + "BKh3V2koeemNTYXAY%2F500000"
+    "pay:?sv=&r=https%3A%2F%2Fstaging.centi.ch%2Fpayment%2Fapi%2Fpayment_request%2F26"
+    + "62e521-ff52-418a-b7e5-c98aefd7295a"
 );
 ```
 
@@ -113,12 +113,12 @@ var txRequest1 = await bitUriParser.parse(
 //// bip272-noSvParam ////
 
 var txRequest = await bitUriParser.parse(
-    "bitcoin:?&r=https%3A%2F%2Fapi.bitsent.net%2Fpayment%2Faddress%2F1Dmq5JKtWu4yZRLW"
-    + "BBKh3V2koeemNTYXAY%2F500000"
+    "bitcoin:?&r=https%3A%2F%2Fstaging.centi.ch%2Fpayment%2Fapi%2Fpayment_request%2F2"
+    + "662e521-ff52-418a-b7e5-c98aefd7295a"
 );
 var txRequest1 = await bitUriParser.parse(
-    "pay:?&r=https%3A%2F%2Fapi.bitsent.net%2Fpayment%2Faddress%2F1Dmq5JKtWu4yZRLWBBKh"
-    + "3V2koeemNTYXAY%2F500000"
+    "pay:?&r=https%3A%2F%2Fstaging.centi.ch%2Fpayment%2Fapi%2Fpayment_request%2F2662e"
+    + "521-ff52-418a-b7e5-c98aefd7295a"
 );
 ```
 
