@@ -1,5 +1,5 @@
 var url = require("url");
-var axios = require("axios");
+var fetch = require("isomorphic-fetch");
 var bsv = require("bsv");
 
 // the schemes are ordered - more strict to less strict
@@ -232,41 +232,23 @@ async function create_PrivateKey_Inputs(uri, o, key) {
     });
   return utxos;
 }
+
 async function create_Paymail_Output(uri, o) {
+  const satoshis = parseInt(uri.searchParams["amount"]);
   return {
-    script: await o.paymailResolverFunction(uri.host, o),
-    satoshis: parseInt(uri.searchParams["amount"]),
+    script: await o.paymailResolverFunction(decodeURIComponent(uri.host), satoshis || 100000, o),
+    satoshis: satoshis,
   };
 }
+
 async function check_Paymail_Peer(uri, o) {
-  var paymail = decodeURIComponent(uri.host);
-  var atIndex = paymail.indexOf("@");
-  var alias = paymail.substr(0, atIndex);
-  var host = paymail.substr(atIndex + 1);
-  var dnsSrvQuery = await get(
-    `https://dns.google.com/resolve?name=_bsvalias._tcp.${host}&type=SRV&cd=0`,
-    o
-  );
-  if (dnsSrvQuery.Status !== 0)
-    throw new Error("No SRV record found for " + host);
-  var data = dnsSrvQuery.Answer[0].data;
-  var [_, _, paymailPort, paymailHost] = data.split(" ");
-  paymailHost = paymailHost.substr(0, paymailHost.length - 1); // remove the '.'
-  var capabilitiesURL = `https://${paymailHost}:${paymailPort}/.well-known/bsvalias`;
-  var req = await get(capabilitiesURL, o);
-  if (!req.capabilities)
-    throw new Error(
-      `Failed to get Paymail Provider Capabilities of '${host}'` +
-        `\nURL: ${capabilitiesURL}` +
-        `\nReq: ${JSON.stringify(req)}`
-    );
-  var peer = req.capabilities["2a40af698840"];
-  if (peer) {
-    peer = peer.replace("{alias}", alias).replace("{domain.tld}", host);
-    o["peer"] = peer;
-    return peer;
+  const peerUrlString = await o.paymailPeerDnsResolverFunction(decodeURIComponent(uri.host), o);
+  if (peerUrlString) {
+    o["peer"] = peerUrlString;
+    return peerUrlString;
   } else return null;
 }
+
 function create_BIP275_Outputs(uri, o) {
   var outs = JSON.parse(uri.searchParams["outputs"]);
   return outs.map((o) => {
@@ -405,24 +387,17 @@ function findUriType(bitcoinUri, options) {
 
 async function get(uri, o) {
   o.debugLog(`GETTING ${uri}`);
-  var res = await axios.get(uri);
+  var res = await fetch(uri).then(r=>r.json());
   o.debugLog(`GET ${uri} ===> ${JSON.stringify(res.data)}`);
   return res.data;
 }
+
 async function checkUtxosOfAddress(address, o) {
   var url =
     "https://api.mattercloud.net/api/v3/main/address/" + address + "/utxo";
   return await get(url, o);
 }
 
-async function resolvePaymail(paymail, o) {
-  var paymailResolveUrl =
-    "https://api.bitsent.net/paymail/" +
-    encodeURIComponent(decodeURIComponent(paymail));
-  var requestString = await get(paymailResolveUrl, o);
-  var outputScript = requestString.output;
-  return outputScript;
-}
 
 function getUriObject(uriString, options) {
   var i1 = uriString.indexOf(":");
@@ -459,7 +434,14 @@ defaultOptions = {
     /** no logging by default */
   },
   checkUtxosOfAddressFunction: checkUtxosOfAddress,
-  paymailResolverFunction: resolvePaymail,
+  paymailResolverFunction: (paymail, satoshis, o) => {
+    throw new Error("bitUriParser requires you to set 'options.paymailResolverFunction'" 
+       + " to a function like : function(paymail, satoshis, optionsObject) { /* RETURNS THE OUTPUT SCRIPT OF THE PAYMAIL IN HEX FORMAT */ }");
+  },
+  paymailPeerDnsResolverFunction: (paymail, o) => { 
+    throw new Error("bitUriParser requires you to set 'options.paymailPeerDnsResolverFunction'" 
+       + " to a function like : function(paymail, optionsObject) { /* RETURNS THE P2P ENDPOINT FOR PUSHING TRANSACTIONS (OR UNDEFINED IF NOT SUPPORTED) */ }");
+  },
 };
 
 async function parse(bitcoinUriString, options = defaultOptions) {

@@ -1,8 +1,5 @@
 var bitUriParser = require("./bitUriParser");
 var fs = require("fs");
-var axios = require("axios");
-
-axios.defaults.adapter = require("axios/lib/adapters/http");
 
 const SKIP_CHECK = "SKIP_CHECK";
 
