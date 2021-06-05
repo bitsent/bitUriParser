@@ -292,19 +292,6 @@ async function create_BIP272_Outputs(uri, o) {
   var r = uri.searchParams["r"];
   var req = await get(r, o);
 
-  req = {
-    network: "bitcoin",
-    outputs: [
-      {
-        amount: 500000,
-        script: "76a9148c1bf1254637c3b521ce47f4b63636d11244a0bd88ac"
-      }
-    ],
-    creationTimestamp: 1584288774,
-    memo: "Pay to 1Dmq5JKtWu4yZRLWBBKh3V2koeemNTYXAY",
-    paymentUrl: "https://api.bitsent.net/payment/pay"
-  };
-
   o["memo"] = req["memo"];
   o["peer"] = req["paymentUrl"];
   o["req-inputs"] = req["req-inputs"];
