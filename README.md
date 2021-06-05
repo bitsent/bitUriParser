@@ -50,7 +50,7 @@ Alternatively, you can also provide your own function for resolving paymails:
 
 # Output Format
 
-```json
+```js
 {
     type: "string - URI type",
     outputs: [{
