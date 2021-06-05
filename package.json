@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "browserify": "npx browserify ./bitUriParser.forBrowserify.js -o bitUriParser.browserified.js"
   },
   "author": "Aleksandar Dinkov",
   "license": "NONE",
