@@ -1,3 +1,9 @@
 var bitUriParser = require("./bitUriParser");
+var paymail = require("./paymail");
 
-module.exports = bitUriParser;
+const defailtOptions = paymail.node.defaultOptions;
+
+module.exports = { ...bitUriParser, paymailResolving,
+  parse: (bitcoinUriString, o = defailtOptions) =>
+    bitUriParser.parse(bitcoinUriString, {...defailtOptions, ...o}),
+};

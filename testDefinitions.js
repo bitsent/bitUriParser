@@ -1,4 +1,4 @@
-var bitUriParser = require("./bitUriParser");
+var bitUriParser = require("./index");
 var fs = require("fs");
 
 const SKIP_CHECK = "SKIP_CHECK";
@@ -11,12 +11,12 @@ const BIP270_PAYMENT_REQUEST_EXPECTED_JSON = {
   outputs: [
     {
       amount: 500000,
-      script: "76a9148c1bf1254637c3b521ce47f4b63636d11244a0bd88ac"
-    }
+      script: SKIP_CHECK,
+    },
   ],
   creationTimestamp: 1584288774,
   memo: "Pay to 1Dmq5JKtWu4yZRLWBBKh3V2koeemNTYXAY",
-  paymentUrl: "https://api.bitsent.net/payment/pay"
+  paymentUrl: "https://api.bitsent.net/payment/pay",
 };
 
 async function testParsing(uri, expectedResult, done) {
@@ -221,7 +221,10 @@ testData = {
     expected: {
       type: "bip272strict",
       mainProtocol: "bip272",
-      outputs: BIP270_PAYMENT_REQUEST_EXPECTED_JSON.outputs.map(o=>({ script: o.script, satoshis: o.amount })),
+      outputs: BIP270_PAYMENT_REQUEST_EXPECTED_JSON.outputs.map((o) => ({
+        script: o.script,
+        satoshis: o.amount,
+      })),
       inputs: [],
       memo: BIP270_PAYMENT_REQUEST_EXPECTED_JSON.memo || "P2P Transaction",
       isBSV: true,
@@ -237,7 +240,10 @@ testData = {
     expected: {
       type: "bip272",
       mainProtocol: "bip272",
-      outputs: BIP270_PAYMENT_REQUEST_EXPECTED_JSON.outputs.map(o=>({ script: o.script, satoshis: o.amount })),
+      outputs: BIP270_PAYMENT_REQUEST_EXPECTED_JSON.outputs.map((o) => ({
+        script: o.script,
+        satoshis: o.amount,
+      })),
       inputs: [],
       memo: BIP270_PAYMENT_REQUEST_EXPECTED_JSON.memo || "P2P Transaction",
       isBSV: true,
@@ -253,7 +259,10 @@ testData = {
     expected: {
       type: "bip272-noSvParam",
       mainProtocol: "bip272",
-      outputs: BIP270_PAYMENT_REQUEST_EXPECTED_JSON.outputs.map(o=>({ script: o.script, satoshis: o.amount })),
+      outputs: BIP270_PAYMENT_REQUEST_EXPECTED_JSON.outputs.map((o) => ({
+        script: o.script,
+        satoshis: o.amount,
+      })),
       inputs: [],
       memo: BIP270_PAYMENT_REQUEST_EXPECTED_JSON.memo || "P2P Transaction",
       isBSV: false,
@@ -262,14 +271,14 @@ testData = {
     },
   },
   paymail: {
-    uris: ["payto:aleks@bitsent.net?purpose=PayMe&amount=1234567"],
+    uris: ["payto:bitcoinsofia@relayx.io?purpose=PayMe&amount=1234567"],
     expected: {
       type: "paymail",
       mainProtocol: "paymail",
       outputs: [
         {
           satoshis: 1234567,
-          script: "76a9148c1bf1254637c3b521ce47f4b63636d11244a0bd88ac",
+          script: SKIP_CHECK,
         },
       ],
       inputs: [],
@@ -293,7 +302,7 @@ testData = {
       inputs: [],
       memo: "PayMe",
       isBSV: true,
-      peer: "https://handcash-cloud-production.herokuapp.com/api/bsvalias/p2p-payment-destination/bitcoinsofia@handcash.io",
+      peer: "https://cloud.handcash.io/api/bsvalias/p2p-payment-destination/bitcoinsofia@handcash.io",
       peerProtocol: "paymail",
     },
   },
@@ -335,8 +344,8 @@ testData = {
   },
   "paymail-noParams": {
     uris: [
-      "payto:" + encodeURIComponent("aleks@bitsent.net"),
-      "payto:aleks@bitsent.net",
+      "payto:" + encodeURIComponent("bitcoinsofia@relayx.io"),
+      "payto:bitcoinsofia@relayx.io",
     ],
     expected: {
       type: "paymail",
@@ -344,29 +353,32 @@ testData = {
       outputs: [
         {
           satoshis: NaN,
-          script: "76a9148c1bf1254637c3b521ce47f4b63636d11244a0bd88ac",
+          script: SKIP_CHECK,
         },
       ],
       inputs: [],
-      memo: "Send to aleks@bitsent.net",
+      memo: "Send to bitcoinsofia@relayx.io",
       isBSV: true,
       peer: null,
       peerProtocol: null,
     },
   },
   "paymail-noScheme": {
-    uris: [encodeURIComponent("aleks@bitsent.net"), "aleks@bitsent.net"],
+    uris: [
+      encodeURIComponent("bitcoinsofia@relayx.io"),
+      "bitcoinsofia@relayx.io",
+    ],
     expected: {
       type: "paymail",
       mainProtocol: "paymail",
       outputs: [
         {
           satoshis: NaN,
-          script: "76a9148c1bf1254637c3b521ce47f4b63636d11244a0bd88ac",
+          script: SKIP_CHECK,
         },
       ],
       inputs: [],
-      memo: "Send to aleks@bitsent.net",
+      memo: "Send to bitcoinsofia@relayx.io",
       isBSV: true,
       peer: null,
       peerProtocol: null,

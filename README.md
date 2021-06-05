@@ -20,11 +20,32 @@ A parser for bitcoin URI strings
 
 # Use
 
+
 ``` js
     var bitUriParser = require("bituriparser");
 
     var bitUri = "bitcoin:1FMif2XbHJx5L2x6QWYKyWEWPpxJC1ipXw?sv=&amount=0.00123456&label=PayMe";
-    var txRequestObject = await bitUriParser.parse(bitUri);
+    var txRequestObject = await bitUriParser.parse(bitUri, {});
+```
+
+The second parameter in the parse method is the options object.
+If you need to resolve paymails, then you need to provide some options in that object.
+
+If you have an identity in a running paymail server, simply add this:
+``` js
+    await bitUriParser.parse(bitUri, {
+        hdPrivKey: "Private key from which the identity is derived."
+        derivationPath: "Derivation path used to derive that identity."
+    });
+```
+
+Alternatively, you can also provide your own function for resolving paymails:
+``` js
+    await bitUriParser.parse(bitUri, {
+        paymailResolverFunction: async function(paymailAddress, satoshis, optionsObject) {
+            return "The output script in HEX format";
+        }
+    });
 ```
 
 # Output Format

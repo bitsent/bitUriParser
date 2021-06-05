@@ -126,7 +126,7 @@ var txRequest1 = await bitUriParser.parse(
 //// paymail ////
 
 var txRequest = await bitUriParser.parse(
-    "payto:aleks@bitsent.net?purpose=PayMe&amount=1234567"
+    "payto:bitcoinsofia@relayx.io?purpose=PayMe&amount=1234567"
 );
 ```
 
@@ -158,10 +158,10 @@ var txRequest = await bitUriParser.parse(
 //// paymail-noParams ////
 
 var txRequest = await bitUriParser.parse(
-    "payto:aleks%40bitsent.net"
+    "payto:bitcoinsofia%40relayx.io"
 );
 var txRequest1 = await bitUriParser.parse(
-    "payto:aleks@bitsent.net"
+    "payto:bitcoinsofia@relayx.io"
 );
 ```
 
@@ -169,9 +169,9 @@ var txRequest1 = await bitUriParser.parse(
 //// paymail-noScheme ////
 
 var txRequest = await bitUriParser.parse(
-    "aleks%40bitsent.net"
+    "bitcoinsofia%40relayx.io"
 );
 var txRequest1 = await bitUriParser.parse(
-    "aleks@bitsent.net"
+    "bitcoinsofia@relayx.io"
 );
 ```
