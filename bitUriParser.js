@@ -480,6 +480,7 @@ async function parse(bitcoinUriString, options = defaultOptions) {
   if (!schema) throw new Error(uriType);
 
   return {
+    uri: bitcoinUriString,
     type: uriType,
     mainProtocol: schema.mainProtocol,
     outputs: await schema.parseOutputs(bitcoinUri, options),

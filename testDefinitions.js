@@ -16,6 +16,7 @@ async function testParsing(uri, expectedResult, done) {
       options = { debugLog: i => logsForThisTest.push(i.toString()) }
     );
 
+    expect(paymentRequest["uri"]).toBe(uri);
     [ "type", "memo", "isBSV", "peer", "peerProtocol" ].forEach(field => {
       if (expectedResult[field] !== SKIP_CHECK)
         expect(paymentRequest[field]).toBe(expectedResult[field]);
