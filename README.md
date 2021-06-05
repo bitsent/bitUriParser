@@ -52,6 +52,7 @@ Alternatively, you can also provide your own function for resolving paymails:
 
 ```js
 {
+    uri: "the URI that got parsed",
     type: "string - URI type",
     outputs: [{
         script: "Hex Script 1",
@@ -61,12 +62,12 @@ Alternatively, you can also provide your own function for resolving paymails:
         satoshis: 20000
     }],
     inputs: [{
-        txid: "thxid of input 1",
+        txid: "txid of input 1",
         vout: 0,
         satoshis: 25561,
         scriptSig: "signature for this input"
     }, {
-        txid: "thxid of input 2",
+        txid: "txid of input 2",
         vout: 5,
         satoshis: 562771,
         scriptSig: "signature for the input"
