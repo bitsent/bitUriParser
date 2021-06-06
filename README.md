@@ -48,6 +48,19 @@ Alternatively, you can also provide your own function for resolving paymails:
     });
 ```
 
+You can also replace the logic used to discover UTXOs when sweeping Private Keys in the HEX or WIF formats:
+
+```js
+await bitUriParser.parse(bitUri, {
+  checkUtxosOfAddressFunction: async function (address, optionsObject) {
+    return [
+      { txid, vout, satoshis, scriptPubKey, scriptPubKey },
+      { txid, vout, satoshis, scriptPubKey, scriptPubKey },
+    ];
+  },
+});
+```
+
 # Output Format
 
 ```js
