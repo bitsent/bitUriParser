@@ -4,8 +4,7 @@ var fetch = require("isomorphic-fetch");
 
 const defaultOptions = {
   paymailOfPaymailUser: "alekstest@wallet.vaionex.com",
-  hdPrivKey:
-    "xprv9s21ZrQH143K42VC5n2vzZfFXEsTbQA5LnWjbm7ScYwroo6QSLYK383z7oiPqsQehQP2hNa2vvRoQGxMuSqF5kghvWPcrDnZrBGu1YVia2X",
+  hdPrivKey: "priv root key for identity",
   derivationPath: "m/44'/0'/0'/0/0",
 
   paymailResolverFunction: resolve,
