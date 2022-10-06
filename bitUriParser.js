@@ -476,6 +476,10 @@ async function parse(bitcoinUriString, options = defaultOptions) {
   if (isBtcProtocol)
     console.warn("Warning: This might be a BTC request. (type=" + uriType + ")");
 
+  var req = await get(bitcoinUri.searchParams["r"], options);
+  if(req.data){
+    return req.data;
+  }
   var schema = schemes.filter(s => s.name === uriType)[0];
   if (!schema) throw new Error(uriType);
 

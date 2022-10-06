@@ -58,6 +58,42 @@ async function testParsing(uri, expectedResult, done) {
       done(message);
     });
 }
+async function testParsingDPP(uri, expectedResult, done) {
+  var logsForThisTest = [];
+  var paymentRequest = null;
+  (async function _doTest() {
+    // console.log(uri);
+    paymentRequest = await bitUriParser.parse(
+      uri,
+      options = { debugLog: i => logsForThisTest.push(i.toString()) }
+    );
+
+    [ "type", "memo", "paymentUrl", "network", "mainProtocol" ].forEach(field => {
+      if (expectedResult[field] !== SKIP_CHECK)
+        expect(paymentRequest[field]).toBe(expectedResult[field]);
+    })
+  })()
+    .then(done)
+    .catch(e => {
+      console.log(
+        "Test Output: \n---------------\n\n" +
+        logsForThisTest
+          .map( i => ">>>>>    " + i.split("\n").join("\n>        ") )
+          .join("\n") +
+        "\n\n---------------\n"
+      );
+
+      var message = e + "\n\n URI: " + uri;
+      if (paymentRequest)
+        message +=
+          "\n\n Actual:\n" +
+          JSON.stringify(paymentRequest) +
+          "\n\n Expected:\n" +
+          JSON.stringify(expectedResult);
+      message += "\n\n " + e.stack;
+      done(message);
+    });
+}
 
 testData = {
   address: {
@@ -277,6 +313,63 @@ testData = {
       peerProtocol: "bip270"
     }
   },
+  "bip272-noSvParam-dpp": {
+    uris: [
+      "pay:?&r=" +
+      encodeURIComponent(
+        "https://dev.relysia.com//v1/payment-request/e2d48069-a76c-45b6-8bb3-29637fb43de0"
+      )
+    ],
+    expected: {
+      "status": "success",
+      "msg": "Operation completed successfully",
+      "paymentUrl": "http://127.0.0.1:3000/v1/payment-request/pay/e2d48069-a76c-45b6-8bb3-29637fb43de0",
+      "uri": "pay:?r=http://127.0.0.1:3000/v1/payment-request/pay/e2d48069-a76c-45b6-8bb3-29637fb43de0",
+      "memo": "paying for testing",
+      "beneficiary": {
+          "email": "test@vaionex.com",
+          "address": "19702 Newark, Delaware, USA",
+          "paymentReference": "e2d48069-a76c-45b6-8bb3-29637fb43de0",
+          "name": "vaionex test"
+      },
+      "network": "mainnet",
+      "expirationTimestamp": 1665036997,
+      "mainProtocol": "bip272",
+      "type": "bip272",
+      "creationTimestamp": 1664866117,
+      "modes": {
+          "ef63d9775da5": {
+              "PaymentOption_0": {
+                  "transactions": [
+                      {
+                          "outputs": {
+                              "stas": [
+                                  {
+                                      "tokenRecipient": "1HQKnJ5FfCjcgvr6AAqNPYhY7NKuZXByMF",
+                                      "tokenAmount": 1,
+                                      "tokenId": "00b91626e0a4b97f624bc1f0d8fa3a3ef35ac664-JAJvfk"
+                                  }
+                              ]
+                          },
+                          "policies": {
+                              "fees": {
+                                  "data": {
+                                      "bytes": 1000,
+                                      "satoshis": 50
+                                  },
+                                  "standard": {
+                                      "satoshis": 50,
+                                      "bytes": 1000
+                                  }
+                              }
+                          }
+                      }
+                  ]
+              }
+          }
+      }
+    }
+  },
   paymail: {
     uris: ["payto:aleks@bitsent.net?purpose=PayMe&amount=1234567"],
     expected: {
@@ -460,5 +553,5 @@ generateMarkdownExamples(testData);
 
 
 module.exports = {
-  testData, testParsing
+  testData, testParsing, testParsingDPP
 }

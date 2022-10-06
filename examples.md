@@ -123,6 +123,15 @@ var txRequest1 = await bitUriParser.parse(
 ```
 
 ```js
+//// bip272-noSvParam-dpp ////
+
+var txRequest = await bitUriParser.parse(
+    "pay:?&r=https%3A%2F%2Fdev.relysia.com%2F%2Fv1%2Fpayment-request%2Fe2d48069-a76c-"
+    + "45b6-8bb3-29637fb43de0"
+);
+```
+
+```js
 //// paymail ////
 
 var txRequest = await bitUriParser.parse(

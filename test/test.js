@@ -4,7 +4,7 @@
 // RUN with 'jest'
 
 
-const { testData, testParsing } = require('../testDefinitions')
+const { testData, testParsing, testParsingDPP } = require('../testDefinitions')
 
 
 // address
@@ -91,6 +91,12 @@ test("bip272-noSvParam_#1", function (done) {
 test("bip272-noSvParam_#2", function (done) {
     var td = testData["bip272-noSvParam"];
     testParsing(td.uris[1], td.expected, done);
+});
+
+// bip272-noSvParam-dpp
+test("bip272-noSvParam-dpp_#1", function (done) {
+    var td = testData["bip272-noSvParam-dpp"];
+    testParsingDPP(td.uris[0], td.expected, done);
 });
 
 // paymail
